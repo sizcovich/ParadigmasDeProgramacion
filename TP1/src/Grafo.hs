@@ -24,15 +24,15 @@ vacio = G [] (const [])
 
 -- Ejercicio 2
 nodos :: Grafo a -> [a]
-nodos = undefined
+nodos (G ns ejes) = ns
 
 -- Ejercicio 3
 vecinos :: Grafo a -> a -> [a]
-vecinos = undefined
+vecinos (G ns ejes) = \y -> ejes y
 
 -- Ejercicio 4
-agNodo :: a -> Grafo a -> Grafo a
-agNodo = undefined
+agNodo :: Eq a => a -> Grafo a -> Grafo a
+agNodo x (G ns t) = if x `elem` ns then (G ns t) else (G (x:ns) t)
 
 -- Ejercicio 5
 -- Construye un nuevo grafo:
