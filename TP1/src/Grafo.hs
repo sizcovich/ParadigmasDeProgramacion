@@ -5,6 +5,12 @@ data Grafo a = G [a] (a -> [a])
 instance (Show a) => Show (Grafo a) where
 	show (G n e) = "[\n" ++ concat (map (\x -> " " ++ show x ++ " -> " ++ show (e x) ++ "\n") n) ++ "]"
 
+instance (Eq a) => Eq (Grafo a) where
+	(G n1 e1) == (G n2 e2) = (listasIguales n1 n2) && (all (\n -> (listasIguales (e1 n) (e2 n))) n1)
+
+-- Igualdad de listas sin importar el orden
+listasIguales :: (Eq a) => [a] -> [a] -> Bool	
+listasIguales l1 l2 = (all (\x -> x `elem` l1) l2) && (all (\x -> x `elem` l2) l1)
 
 -- ---------------------------------Sección 3--------- Grafos ---------------------------
 
@@ -33,7 +39,7 @@ agNodo = undefined
 --    * Crea una nueva función que se indefine para el nodo que acabamos
 --      de sacar y para los demás nodos devuelve los mismos vecinos de
 --      antes salvo el nodo que se sacó.
-sacarNodo :: a -> Grafo a -> Grafo a
+sacarNodo :: Eq a => a -> Grafo a -> Grafo a
 sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefined else (filter (/=n) (ejes x)))
 
 -- Ejercicio 6
@@ -47,7 +53,7 @@ agEje = undefined
 -- Es por eso que en el paso inductivo primero pregunta si el grafo
 -- "rec" ya tiene algún nodo y si es así agrega un eje entre el último
 -- nodo agregado y el que se está agregando en este paso.
-lineal :: [a] -> Grafo a
+lineal :: Eq a => [a] -> Grafo a
 lineal = foldr (\n rec ->  if null (nodos rec)
 						   then agNodo n rec
 						   else agEje (n,head (nodos rec)) (agNodo n rec)

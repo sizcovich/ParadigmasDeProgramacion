@@ -23,8 +23,14 @@ testsParser = test [
 	(B (And (Var "p") (Var "q"))) 	~=? (parse "[](p && q)")]
 
 testsGrafo = test [
+	-- Ej 1,2
 	[1] ~~? (nodos (agNodo 1 vacio)),
-	[1,2] ~~? (nodos (agNodo 2 (agNodo 1 vacio)))
+	[1,2] ~~? (nodos (agNodo 2 (agNodo 1 vacio))),
+	-- Ej 5
+	[1,3] ~~? nodos (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))),
+	[1] ~~? vecinos (sacarNodo 2 (agEje (3,2) (agEje (3,1) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))) 3,
+	-- Ej 7
+	(agEje (2,3) (agEje (1,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) ~=? lineal [1,2,3]
 	]
 
 ---------------
