@@ -23,14 +23,17 @@ vacio :: Grafo a
 vacio = G [] (const [])
 
 -- Ejercicio 2
+-- Devuelve la lista de nodos del grafo que se pasa por parámetro.
 nodos :: Grafo a -> [a]
 nodos (G ns ejes) = ns
 
 -- Ejercicio 3
+-- Dado un grafo, devuelve una función que toma un nodo y retorna la lista de vecinos del mismo.
 vecinos :: Grafo a -> a -> [a]
 vecinos (G ns ejes) = \y -> ejes y
 
 -- Ejercicio 4
+-- Agrega un nodo al grafo en el caso en el que el mismo no le pertenezca. Caso contrario, devuelve el grafo original.
 agNodo :: Eq a => a -> Grafo a -> Grafo a
 agNodo x (G ns t) = if x `elem` ns then (G ns t) else (G (x:ns) t)
 
@@ -44,8 +47,10 @@ sacarNodo :: Eq a => a -> Grafo a -> Grafo a
 sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefined else (filter (/=n) (ejes x)))
 
 -- Ejercicio 6
+-- Devuelve el grafo ingresado por parámetro con el agregado del eje que une el primer nodo de la tupla con el segundo.
+-- Se consideran que ambos nodos pertenecen al grafo.
 agEje :: (a,a) -> Grafo a -> Grafo a
-agEje = undefined
+agEje (x, y) (G ns t) = (G ns (\x -> y:(t x)))
 
 -- Ejercicio 7
 -- Si la lista es vacía, crea un grafo vacío.
