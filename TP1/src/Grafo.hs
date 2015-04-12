@@ -16,10 +16,11 @@ listasIguales l1 l2 = (all (\x -> x `elem` l1) l2) && (all (\x -> x `elem` l2) l
 
 -- Ejercicio 1
 -- Crea un nuevo grafo con una lista vacía de nodos y una función que
--- devuelve siempre "undefined" (porque no hay nodos, y el dominio de
--- la función de ejes es el conjunto de nodos).
+-- devuelve siempre [] (es decir que si luego pedimos los vecinos de
+-- cualquier nodo que no esté en el grafo, da una lista vacía. Esto es
+-- para que la función sea total.
 vacio :: Grafo a
-vacio = G [] (const undefined)
+vacio = G [] (const [])
 
 -- Ejercicio 2
 nodos :: Grafo a -> [a]
