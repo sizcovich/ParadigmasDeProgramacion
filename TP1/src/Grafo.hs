@@ -31,9 +31,10 @@ agNodo = undefined
 -- Construye un nuevo grafo:
 --    * Filtra la lista de nodos para sacar el nodo.
 --    * Crea una nueva función que se indefine para el nodo que acabamos
---      de sacar y devuelve lo mismo que antes para los demás nodos.
+--      de sacar y para los demás nodos devuelve los mismos vecinos de
+--      antes salvo el nodo que se sacó.
 sacarNodo :: a -> Grafo a -> Grafo a
-sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefined else (ejes x))
+sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefined else (filter (/=n) (ejes x)))
 
 -- Ejercicio 6
 agEje :: (a,a) -> Grafo a -> Grafo a
