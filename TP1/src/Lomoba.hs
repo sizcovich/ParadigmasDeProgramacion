@@ -6,7 +6,13 @@ import Tipos
 -- ---------------------------------Sección 6--------- Lomoba ---------------------------
 
 -- Ejercicio 10
---foldExp :: ...
+foldExp ::     (Prop -> a)    -- Función para aplicar a (Var p)
+			-> (a -> a)       -- Función para aplicar a (Not e)
+			-> (a -> a -> a)  -- Función para aplicar a (Or e1 e2)
+			-> (a -> a -> a)  -- Función para aplicar a (And e1 e2)
+			-> (a-> a) 		  -- Función para aplicar a (D e)
+			-> (a -> a) 	  -- Función para aplicar a (B e)
+			-> Exp -> a       -- Función que construye el fold
 foldExp = undefined
 
 -- Ejercicio 11
@@ -19,7 +25,24 @@ extraer = undefined
 
 -- Ejercicio 13
 eval :: Modelo -> Mundo -> Exp -> Bool
-eval = undefined
+eval mod w exp = (eval' mod exp) w
+
+-- Dado un modelo y una expresión, devuelve una función
+-- que para un Mundo dado (en el modelo), devuelve la evaluación.
+-- En los pasos de D y B, se aplica la función recursiva sobre todos
+-- los mundos vecinos y se busca que en alguno o en todos la expresión
+-- sea true.
+eval' :: Modelo -> Exp -> (Mundo -> Bool)
+eval' (K g mundosTrue) =
+	foldExp 
+		(\p w -> w `elem` (mundosTrue p)) -- ::Prop -> (Mundo -> Bool)
+		(\rec w -> not (rec w)) -- ::(Mundo -> Bool) -> Mundo -> Bool
+		(\rec1 rec2 w -> (rec1 w) || (rec2 w))
+		(\rec1 rec2 w -> (rec1 w) && (rec2 w))
+		(\rec w -> or (map rec (vecinos g w))) -- rec::(Mundo -> Bool)
+		(\rec w -> and (map rec (vecinos g w)))
+
+
 
 -- Ejercicio 14
 valeEn :: Exp -> Modelo -> [Mundo]

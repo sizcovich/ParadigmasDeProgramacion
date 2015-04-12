@@ -9,7 +9,8 @@ t = runTestTT allTests
 
 allTests = test [
 	"parser" ~: testsParser,
-	"grafo" ~: testsGrafo
+	"grafo" ~: testsGrafo,
+	"lomoba" ~: testsLomoba
 	]
 
 testsParser = test [
@@ -32,6 +33,22 @@ testsGrafo = test [
 	-- Ej 7
 	(agEje (2,3) (agEje (1,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) ~=? lineal [1,2,3]
 	]
+	
+testsLomoba = test [
+	-- Ej 13
+	True ~=? eval modeloKrEnunciado 1 (parse "p&&[]q"),
+	True ~=? eval modeloKrEnunciado 1 (parse "p&&<>r"),
+	False ~=? eval modeloKrEnunciado 1 (parse "[]r"),
+	True ~=? eval modeloKrEnunciado 1 (parse "<>(q&&r)")
+	]
+	
+
+-- El grafo del enunciado
+modeloKrEnunciado = K (agEje (1,2) (agEje (1,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
+						 (\p -> case () of
+									_ | p=="p" -> [1]
+									  | p=="q" -> [2,3]
+									  | p=="r" -> [3])
 
 ---------------
 --  helpers  --
