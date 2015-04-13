@@ -48,9 +48,12 @@ sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefi
 
 -- Ejercicio 6
 -- Devuelve el grafo ingresado por parámetro con el agregado del eje que une el primer nodo de la tupla con el segundo.
--- Se consideran que ambos nodos pertenecen al grafo.
+-- Se considera que el primer nodo pertenece al grafo.
+-- En primer lugar, se verifica si el segundo nodo está en el grafo. Si esto no ocurre se devuelve la función original, 
+-- sino se lo agrega.
 agEje :: (a,a) -> Grafo a -> Grafo a
-agEje (x, y) (G ns t) = (G ns (\x -> y:(t x)))
+agEje (x, y) (G ns t) = if y `elem` (t x) then (G ns t) else 
+									(G ns (\n -> if n == x then y:(t x) else (t n))
 
 -- Ejercicio 7
 -- Si la lista es vacía, crea un grafo vacío.
