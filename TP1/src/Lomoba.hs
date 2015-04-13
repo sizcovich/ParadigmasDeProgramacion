@@ -13,7 +13,12 @@ foldExp ::     (Prop -> a)    -- Función para aplicar a (Var p)
 			-> (a-> a) 		  -- Función para aplicar a (D e)
 			-> (a -> a) 	  -- Función para aplicar a (B e)
 			-> Exp -> a       -- Función que construye el fold
-foldExp = undefined
+foldExp fVar fNot fOr fAnd fd fb (Var p) = fVar p
+foldExp fVar fNot fOr fAnd fd fb (Not e) = fNot (foldExp fVar fNot fOr fAnd fd fb e) 
+foldExp fVar fNot fOr fAnd fd fb (Or a b) = fOr (foldExp fVar fNot fOr fAnd fd fb a) (foldExp fVar fNot fOr fAnd fd fb b)
+foldExp fVar fNot fOr fAnd fd fb (And a b) = fAnd (foldExp fVar fNot fOr fAnd fd fb a) (foldExp fVar fNot fOr fAnd fd fb b)
+foldExp fVar fNot fOr fAnd fd fb (D e) = fd (foldExp fVar fNot fOr fAnd fd fb e)
+foldExp fVar fNot fOr fAnd fd fb (B e) = fb (foldExp fVar fNot fOr fAnd fd fb e)
 
 -- Ejercicio 11
 visibilidad :: Exp -> Integer
