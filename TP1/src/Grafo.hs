@@ -30,7 +30,7 @@ nodos (G ns ejes) = ns
 -- Ejercicio 3
 -- Dado un grafo, devuelve una función que toma un nodo y retorna la lista de vecinos del mismo.
 vecinos :: Grafo a -> a -> [a]
-vecinos (G ns ejes) = \y -> ejes y
+vecinos (G ns ejes) = (\y -> ejes y)
 
 -- Ejercicio 4
 -- Agrega un nodo al grafo en el caso en el que el mismo no le pertenezca. Caso contrario, devuelve el grafo original.
@@ -48,9 +48,9 @@ sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefi
 
 -- Ejercicio 6
 -- Devuelve el grafo ingresado por parámetro con el agregado del eje que une el primer nodo de la tupla con el segundo.
--- Se considera que el primer nodo pertenece al grafo.
--- En primer lugar, se verifica si el segundo nodo está en el grafo. Si esto no ocurre se devuelve la función original, 
--- sino se lo agrega.
+--    * Se verifica si y pertenece a la lista de vecinos de x
+--    * Si lo hace, se devuelve el grafo con la funcion sin modificar
+--    * Si no, se modifica la funcion para agregar la nueva arista y se devuelve el grafo.
 agEje :: Eq a => (a,a) -> Grafo a -> Grafo a
 agEje (x, y) (G ns t) = if y `elem` (t x) then (G ns t) else 
 									(G ns (\n -> if n == x then y:(t x) else (t n)))
@@ -70,13 +70,21 @@ lineal = foldr (\n rec ->  if null (nodos rec)
 			   vacio
 
 -- Ejercicio 8
-union :: Grafo a -> Grafo a -> Grafo a
-union = undefined
+-- Devuelve un grafo con la uníon de los nodos de los otros dos. Los nodos pueden estar en ambos grafos, con lo cual hay que unir los vecinos de forma adecuada.
+-- Defini 2 funciones. La primera es una union de conjuntos de forma tal que si hay elementos repetidos en alguno de los dos conjuntos no se refeleje en el final, y la segunda es dameVecinos, que me devuelve los vecinos del nodo x en el grafo, si el nodo pertenece al grafo y en caso contrario me devuelve vacio.
+-- Luego, utilice la union de conjuntos para unir los nodos y los vecinos de dameVecinos.
+union :: Eq a => Grafo a -> Grafo a -> Grafo a
+union ga gb = G (unionConj (nodos ga) (nodos gb)) (\x -> unionConj (dameVecinos x ga) (dameVecinos x gb))
+
+unionConj :: Eq a => [a] -> [a] -> [a]
+unionConj a b = filter (\x -> not (x `elem` b)) a ++ b
+
+dameVecinos :: Eq a => a -> Grafo a -> [a]
+dameVecinos x (G ns ejes) = if x `elem` ns then (ejes x) else []
 
 -- Ejercicio 9
 clausura :: Grafo a -> Grafo a
 clausura = undefined
-
 
 
 
