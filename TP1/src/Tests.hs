@@ -24,14 +24,35 @@ testsParser = test [
 	(B (And (Var "p") (Var "q"))) 	~=? (parse "[](p && q)")]
 
 testsGrafo = test [
-	-- Ej 1,2
+	-- Ej 1,2,4 (agregar nodos, ver nodos, grafo vacío)
 	[1] ~~? (nodos (agNodo 1 vacio)),
 	[1,2] ~~? (nodos (agNodo 2 (agNodo 1 vacio))),
-	-- Ej 5
+	[1,2] ~~? (nodos (agNodo 2 (agNodo 2 (agNodo 1 vacio)))),
+	-- Ej 3,6 (agrega ejes, ver vecinos)
+	[] ~~? (vecinos (agNodo 3 (agNodo 2 (agNodo 1 vacio))) 1),
+	[] ~~? (vecinos (agNodo 3 (agNodo 2 (agNodo 1 vacio))) 5), -- es total
+	[2] ~~? (vecinos (agEje (3,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))) 3),
+	[2,3] ~~? (vecinos (agEje (3,3) (agEje (3,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) 3),
+	[2] ~~? (vecinos (agEje (3,2) (agEje (3,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) 3),
+	-- Ej 5 (sacar nodo)
 	[1,3] ~~? nodos (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))),
 	[1] ~~? vecinos (sacarNodo 2 (agEje (3,2) (agEje (3,1) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))) 3,
-	-- Ej 7
-	(agEje (2,3) (agEje (1,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) ~=? lineal [1,2,3]
+	[] ~~? vecinos (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))) 2, -- sacar nodo mantiene que sea funcion total
+	-- Ej 7 (lineal)
+	(agEje (2,3) (agEje (1,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) ~=? lineal [1,2,3],
+	-- Ej 8 (union de grafos)
+	(agEje (3,4) (agEje (1,2) (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))
+						~=? union (agEje (3,4) (agNodo 4 (agNodo 3 vacio)))
+						          (agEje (1,2)(agNodo 2 (agNodo 1 vacio))), -- Grafos disjuntos
+	(agEje (1,2) (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))
+						~=? union (agEje (1,2) (agNodo 1 (agNodo 2 vacio)))
+								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Algunos nodos en común
+	(agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
+				        ~=? union (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
+								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Grafos idénticos
+	(agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
+				        ~=? union (agEje (1,3) (agNodo 1 (agEje (2,3) (agNodo 3 (agNodo 2 vacio)))))
+								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) -- Grafos idénticos en distinto orden
 	]
 	
 testsLomoba = test [
