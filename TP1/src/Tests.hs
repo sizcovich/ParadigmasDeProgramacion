@@ -52,7 +52,13 @@ testsGrafo = test [
 								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Grafos idénticos
 	(agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
 				        ~=? union (agEje (1,3) (agNodo 1 (agEje (2,3) (agNodo 3 (agNodo 2 vacio)))))
-								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) -- Grafos idénticos en distinto orden
+								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Grafos idénticos en distinto orden
+	-- Ej 9 (clausura transitiva)
+	-- hago un grafo que es un ciclo y deberia obtener un completo con la clausura
+	[1,2,3,4] ~~? vecinos (clausura (agEje (4,1) (lineal [1,2,3,4]))) 1,
+	[1,2,3,4] ~~? vecinos (clausura (agEje (4,1) (lineal [1,2,3,4]))) 2,
+	[1,2,3,4] ~~? vecinos (clausura (agEje (4,1) (lineal [1,2,3,4]))) 3,
+	[1,2,3,4] ~~? vecinos (clausura (agEje (4,1) (lineal [1,2,3,4]))) 4
 	]
 	
 testsLomoba = test [

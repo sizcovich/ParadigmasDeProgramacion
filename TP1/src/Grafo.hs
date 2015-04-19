@@ -1,5 +1,7 @@
 module Grafo (Grafo, vacio, nodos, vecinos, agNodo, sacarNodo, agEje, lineal, union, clausura) where
 
+import qualified List (union)
+
 data Grafo a = G [a] (a -> [a])
 
 instance (Show a) => Show (Grafo a) where
@@ -82,9 +84,68 @@ unionConj a b = filter (\x -> not (x `elem` b)) a ++ b
 dameVecinos :: Eq a => a -> Grafo a -> [a]
 dameVecinos x (G ns ejes) = if x `elem` ns then (ejes x) else []
 
+
 -- Ejercicio 9
-clausura :: Grafo a -> Grafo a
-clausura = undefined
+-- Recorremos los nodos del grafo y por cada nodo agregamos los
+-- vecinos que se obtienen por reflexividad y transitividad.
+--   Para reflexividad, simplemente agregamos un loop.
+--   Para transitividad, vamos a buscar los vecinos de los vecinos de los
+--    vecinos ..... de los vecinos del nodo (nodosAlcanzables). Agregamos
+--    todos los ejes hacia esos nodos.
+-- Observar que agregar ejes repetidos no modifica el grafo.
+clausura :: (Eq a) => Grafo a -> Grafo a
+clausura grafoOriginal@(G nodos vecinos) = foldr 
+												(\x grec ->  agEje (x,x) (agEjesDesdeHasta grec x (nodosAlcanzables grec x)))
+												grafoOriginal
+												nodos
+
+
+
+
+
+-- agEjesDesdeHasta g x [y1,...,yn] = Al grafo g le agrega los ejes
+-- (x,y1),...,(x,yn).
+agEjesDesdeHasta :: (Eq a) => Grafo a -> a -> [a] -> Grafo a
+agEjesDesdeHasta grafo x = foldr (\y grec -> agEje (x,y) grec) grafo
+
+
+-- Toma un grafo y un nodo y devuelve todos los nodos alcanzables
+-- por transitividad.
+--
+-- Busca el punto fijo de una función lambda.
+-- Esta función lambda, toma una lista de nodos y hace la unión
+-- de esa lista con todos los vecinos de esos nodos. Aplicar muchas veces
+-- esta función eventualmente tiene un punto fijo (porque siempre es la
+-- lista de parámetro la que se une con otra, entonces el prefijo se
+-- mantiene y a lo sumo se eliminan repetidos de la segunda lista).
+--
+-- El punto fijo justamente se alcanza cuando se recorrieron todos
+-- los nodos alcanzables (clausura transitiva) desde el nodo inicial.
+nodosAlcanzables :: (Eq a) => Grafo a -> a -> [a]
+nodosAlcanzables grafo n = puntoFijo (\listaNodos -> List.union listaNodos (vecinosDeTodos grafo listaNodos)) [n]
+
+
+-- Toma un grafo y una lista de nodos y devuelve una lista que tiene
+-- todos los vecinos de esos (sin repetidos)
+vecinosDeTodos :: (Eq a) => Grafo a -> [a] -> [a]
+vecinosDeTodos (G nodos vecinos) = foldr (\x rec -> List.union rec (vecinos x)) []
+
+
+-- Punto fijo de f para un valor x de entrada. Es decir devuelve
+-- el resultado de aplicar f (f (f ...(f x)...)) hasta que f y = y.
+-- Para hacer esto, usamos una lista por comprensión con un selector
+-- infinito y la condición implica que el primer elemento de la lista,
+-- será el punto fijo de f.
+puntoFijo :: (Eq a) => (a -> a) -> a -> a
+puntoFijo f x = [ (aplicarNVeces n f x) | n <- [1..], (aplicarNVeces n f x) == (aplicarNVeces (n-1) f x)] !! 0
+
+
+-- Para aplicar n veces f, usamos un esquema de recursión sobre la lista
+-- [1..n] y en cada paso aplicamos una vez f. Al terminar de recorrer
+-- la lista habremos aplicado N veces f (esta función es el análogo a 
+-- un "for" imperativo).
+aplicarNVeces :: Int -> (a -> a) -> a -> a
+aplicarNVeces n f x = foldr (\_ res -> f res) x [1..n]
 
 
 
