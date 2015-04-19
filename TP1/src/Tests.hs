@@ -66,7 +66,18 @@ testsLomoba = test [
 	True ~=? eval modeloKrEnunciado 1 (parse "p&&[]q"),
 	True ~=? eval modeloKrEnunciado 1 (parse "p&&<>r"),
 	False ~=? eval modeloKrEnunciado 1 (parse "[]r"),
-	True ~=? eval modeloKrEnunciado 1 (parse "<>(q&&r)")
+	True ~=? eval modeloKrEnunciado 1 (parse "<>(q&&r)"),
+	
+    -- Ej 15
+	[1] ~~? (\(K g f) -> nodos g)(quitar (parse "p&&[]q") modeloKrEnunciado),
+	[] ~~? ((\(K g f) -> f)(quitar (parse "p&&[]q") modeloKrEnunciado)) "q", -- mundos donde vale "q"
+	[1] ~~? ((\(K g f) -> f)(quitar (parse "p&&[]q") modeloKrEnunciado)) "p", -- mundos donde vale "p"
+	
+	[2,3] ~~? (\(K g f) -> nodos g)(quitar (parse "q") modeloKrEnunciado),
+	[3] ~~? ((\(K g f) -> f)(quitar (parse "q") modeloKrEnunciado)) "r", -- mundos donde vale "r"
+	[2,3] ~~? ((\(K g f) -> f)(quitar (parse "q") modeloKrEnunciado)) "q", -- mundos donde vale "q"
+	
+	(\(K g f) -> g)modeloKrEnunciado ~=? (\(K g f) -> g)(quitar (parse "q||<>r") modeloKrEnunciado) -- no saca nada
 	]
 	
 
@@ -75,7 +86,8 @@ modeloKrEnunciado = K (agEje (1,2) (agEje (1,3) (agNodo 3 (agNodo 2 (agNodo 1 va
 						 (\p -> case () of
 									_ | p=="p" -> [1]
 									  | p=="q" -> [2,3]
-									  | p=="r" -> [3])
+									  | p=="r" -> [3]
+									  | otherwise -> []) -- debe ser total, segun el enunciado
 
 ---------------
 --  helpers  --

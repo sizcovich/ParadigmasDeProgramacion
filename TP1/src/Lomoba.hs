@@ -54,8 +54,19 @@ valeEn :: Exp -> Modelo -> [Mundo]
 valeEn = undefined
 
 -- Ejercicio 15
+-- Usando foldr, voy construyendo un nuevo modelo de Kriptke, partiendo
+-- del modelo pasado por argumento y sacándole los mundos donde no vale
+-- la expresión. Por cada mundo que saco, le saco el nodo al grafo y
+-- lo saco del valor de retorno de la función (para cada símbolo
+-- proposicional).
 quitar :: Exp -> Modelo -> Modelo
-quitar = undefined
+quitar e mod@(K g mundosTrue) =
+			foldr (\w (K gRec fRec) -> 
+							K (sacarNodo w gRec)
+							  (\prop -> filter (/=w) (fRec prop))
+				  )
+				  mod                  -- Si e vale en todos los mundos, devuelvo el modelo original
+				  (valeEn (Not e) mod) -- mundos donde NO vale e
 
 -- Ejercicio 16
 cierto :: Modelo -> Exp -> Bool
