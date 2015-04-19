@@ -40,11 +40,11 @@ agNodo x (G ns t) = if x `elem` ns then (G ns t) else (G (x:ns) t)
 -- Ejercicio 5
 -- Construye un nuevo grafo:
 --    * Filtra la lista de nodos para sacar el nodo.
---    * Crea una nueva función que se indefine para el nodo que acabamos
+--    * Crea una nueva función que devuelve [] para el nodo que acabamos
 --      de sacar y para los demás nodos devuelve los mismos vecinos de
 --      antes salvo el nodo que se sacó.
 sacarNodo :: Eq a => a -> Grafo a -> Grafo a
-sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then undefined else (filter (/=n) (ejes x)))
+sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then [] else (filter (/=n) (ejes x)))
 
 -- Ejercicio 6
 -- Devuelve el grafo ingresado por parámetro con el agregado del eje que une el primer nodo de la tupla con el segundo.
