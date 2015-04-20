@@ -1,8 +1,6 @@
 module Lomoba where
 import Grafo
 import Tipos
-
-
 -- ---------------------------------Sección 6--------- Lomoba ---------------------------
 
 -- Ejercicio 10
@@ -30,10 +28,19 @@ visibilidad = foldExp fVar fNot fOr fAnd fd fb
             fd = (+1)
             fb= (+1)
 
--- Ejercicio 12
+-- Ejercicio 12 -- No se si estan bien fd y fb
 extraer :: Exp -> [Prop]
-extraer = undefined
+extraer = foldExp fVar fNot fOr fAnd fd fb
+    where   fVar = (\p -> [p])
+            fNot = id
+            fOr = unionConj
+            fAnd = unionConj
+            fd = id
+            fb= id
 
+unionConj :: Eq a => [a] -> [a] -> [a]
+unionConj a b = filter (\x -> not (x `elem` b)) a ++ b
+            
 -- Ejercicio 13
 eval :: Modelo -> Mundo -> Exp -> Bool
 eval mod w exp = (eval' mod exp) w
