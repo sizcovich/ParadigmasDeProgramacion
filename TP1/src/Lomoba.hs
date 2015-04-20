@@ -22,7 +22,13 @@ foldExp fVar fNot fOr fAnd fd fb (B e) = fb (foldExp fVar fNot fOr fAnd fd fb e)
 
 -- Ejercicio 11
 visibilidad :: Exp -> Integer
-visibilidad = undefined
+visibilidad = foldExp fVar fNot fOr fAnd fd fb
+    where   fVar = const 0
+            fNot = id
+            fOr = max
+            fAnd = max
+            fd = (+1)
+            fb= (+1)
 
 -- Ejercicio 12
 extraer :: Exp -> [Prop]
