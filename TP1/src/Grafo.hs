@@ -104,9 +104,6 @@ clausura grafoOriginal@(G nodos vecinos) = foldr
 												nodos
 
 
-
-
-
 -- agEjesDesdeHasta g x [y1,...,yn] = Al grafo g le agrega los ejes
 -- (x,y1),...,(x,yn).
 agEjesDesdeHasta :: (Eq a) => Grafo a -> a -> [a] -> Grafo a
@@ -126,13 +123,13 @@ agEjesDesdeHasta grafo x = foldr (\y grec -> agEje (x,y) grec) grafo
 -- El punto fijo justamente se alcanza cuando se recorrieron todos
 -- los nodos alcanzables (clausura transitiva) desde el nodo inicial.
 nodosAlcanzables :: (Eq a) => Grafo a -> a -> [a]
-nodosAlcanzables grafo n = puntoFijo (\listaNodos -> (unionConj listaNodos (vecinosDeTodos grafo listaNodos))) [n]
+nodosAlcanzables grafo n = puntoFijo (\listaNodos -> (Data.List.union listaNodos (vecinosDeTodos grafo listaNodos))) [n]
 
 
 -- Toma un grafo y una lista de nodos y devuelve una lista que tiene
 -- todos los vecinos de esos (sin repetidos)
 vecinosDeTodos :: (Eq a) => Grafo a -> [a] -> [a]
-vecinosDeTodos (G nodos vecinos) = foldr (\x rec -> (unionConj rec (vecinos x))) []
+vecinosDeTodos (G nodos vecinos) = foldr (\x rec -> (Data.List.union rec (vecinos x))) []
 
 
 -- Punto fijo de f para un valor x de entrada. Es decir devuelve
