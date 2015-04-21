@@ -36,7 +36,7 @@ extraer = foldExp fVar fNot fOr fAnd fd fb
             fOr = unionConj
             fAnd = unionConj
             fd = id
-            fb= id
+            fb = id
 
 unionConj :: Eq a => [a] -> [a] -> [a]
 unionConj a b = filter (\x -> not (x `elem` b)) a ++ b
@@ -63,15 +63,17 @@ eval' (K g mundosTrue) =
 
 
 -- Ejercicio 14
+-- Dadas todas las variables proposicionales del grafo, se devuelven los mundos
+-- que al evaluarlos dan verdadero
 valeEn :: Exp -> Modelo -> [Mundo]
-valeEn = undefined
+valeEn exp (K g mundosTrue) = foldr (\x rec -> (mundosTrue x) ++ rec) [] (extraer exp)
 
 -- Ejercicio 15
--- Usando foldr, voy construyendo un nuevo modelo de Kriptke, partiendo
+-- Usando foldr, voy construyendo un nuevo modelo de Kripke, partiendo
 -- del modelo pasado por argumento y sacándole los mundos donde no vale
 -- la expresión. Por cada mundo que saco, le saco el nodo al grafo y
 -- lo saco del valor de retorno de la función (para cada símbolo
--- proposicional).
+-- proposicional)
 quitar :: Exp -> Modelo -> Modelo
 quitar e mod@(K g mundosTrue) =
 			foldr (\w (K gRec fRec) -> 
@@ -82,6 +84,8 @@ quitar e mod@(K g mundosTrue) =
 				  (valeEn (Not e) mod) -- mundos donde NO vale e
 
 -- Ejercicio 16
+-- Compara el modelo original con el modelo resultante de quitarle los mundos tales
+-- que no valga e.
 cierto :: Modelo -> Exp -> Bool
-cierto = undefined
+cierto mod@(K g mundosTrue) e = ((valeEn e mod) == (valeEn e (quitar e mod)))
 
