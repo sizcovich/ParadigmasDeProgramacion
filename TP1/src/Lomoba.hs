@@ -66,7 +66,10 @@ eval' (K g mundosTrue) =
 -- Dadas todas las variables proposicionales del grafo, se devuelven los mundos
 -- que al evaluarlos dan verdadero
 valeEn :: Exp -> Modelo -> [Mundo]
-valeEn exp (K g mundosTrue) = foldr (\x rec -> (mundosTrue x) ++ rec) [] (extraer exp)
+valeEn exp mod@(K g mundosTrue) = filter (eval' mod exp) (todosLosMundos exp mod)
+
+todosLosMundos :: Exp -> Modelo -> [Mundo]
+todosLosMundos exp (K g mundosTrue) = foldr (\x rec -> (mundosTrue x) ++ rec) [] (extraer exp)
 
 -- Ejercicio 15
 -- Usando foldr, voy construyendo un nuevo modelo de Kripke, partiendo
