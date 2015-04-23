@@ -1,5 +1,6 @@
 module Lomoba where
 import Grafo
+import List
 import Tipos
 -- ---------------------------------Sección 6--------- Lomoba ---------------------------
 
@@ -87,5 +88,6 @@ quitar e mod@(K g mundosTrue) =
 -- Compara el modelo original con el modelo resultante de quitarle los mundos tales
 -- que no valga e.
 cierto :: Modelo -> Exp -> Bool
-cierto mod@(K g mundosTrue) e = (valeEn e (quitar e mod) == (valeEn e mod))
+cierto mod@(K g mundosTrue) e = (sort (nodos g) == sort (valeEn e mod))
+
 
