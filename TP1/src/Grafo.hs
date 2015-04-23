@@ -60,6 +60,10 @@ agEje :: Eq a => (a,a) -> Grafo a -> Grafo a
 agEje (x, y) (G ns t) = if y `elem` (t x) then (G ns t) else 
 									(G ns (\n -> if n == x then y:(t x) else (t n)))
 
+
+									
+									
+									
 -- Ejercicio 7
 -- Si la lista es vacía, crea un grafo vacío.
 -- Si la lista no es vacía, recursivamente va agregando nodos al grafo,

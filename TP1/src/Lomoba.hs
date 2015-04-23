@@ -56,6 +56,18 @@ extraer = foldExp fVar fNot fOr fAnd fd fb
             fd = id
             fb = id
             
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
 -- Ejercicio 13
 eval :: Modelo -> Mundo -> Exp -> Bool
 eval mod w exp = (eval' mod exp) w
