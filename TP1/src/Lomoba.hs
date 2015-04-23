@@ -1,6 +1,7 @@
 module Lomoba where
 import Grafo
 import List
+import qualified Data.List (union)
 import Tipos
 -- ---------------------------------Sección 6--------- Lomoba ---------------------------
 
@@ -14,12 +15,23 @@ foldExp ::     (Prop -> a)    -- Función para aplicar a (Var p)
 			-> Exp -> a       -- Función que construye el fold
 foldExp fVar fNot fOr fAnd fd fb (Var p) = fVar p
 foldExp fVar fNot fOr fAnd fd fb (Not e) = fNot (foldExp fVar fNot fOr fAnd fd fb e) 
-foldExp fVar fNot fOr fAnd fd fb (Or a b) = fOr (foldExp fVar fNot fOr fAnd fd fb a) (foldExp fVar fNot fOr fAnd fd fb b)
-foldExp fVar fNot fOr fAnd fd fb (And a b) = fAnd (foldExp fVar fNot fOr fAnd fd fb a) (foldExp fVar fNot fOr fAnd fd fb b)
+foldExp fVar fNot fOr fAnd fd fb (Or a b) = fOr 
+                                                (foldExp fVar fNot fOr fAnd fd fb a) 
+                                                (foldExp fVar fNot fOr fAnd fd fb b)
+foldExp fVar fNot fOr fAnd fd fb (And a b) = fAnd (foldExp fVar fNot fOr fAnd fd fb a) 
+                                                  (foldExp fVar fNot fOr fAnd fd fb b)
 foldExp fVar fNot fOr fAnd fd fb (D e) = fd (foldExp fVar fNot fOr fAnd fd fb e)
 foldExp fVar fNot fOr fAnd fd fb (B e) = fb (foldExp fVar fNot fOr fAnd fd fb e)
 
 -- Ejercicio 11
+-- Calcula la visibilidad de la f ormula. Cada vez que aparece <> o [] debo 
+-- incrementar en 1 el valor de la misma.
+--    * Var es el caso base, por lo que utilizare const 0. 
+--    * Not no sumara ningun valor, por lo que utilizare id.
+--    * Or y And que seran bifurcaciones en el arbol de recursion y por lo tanto 
+--      tomaremos el maximo resultante de ambas ramas de la recursion.
+--    * D y B seran los casos en donde tendre que sumar uno, por lo que aplicare 
+--      la funcion + con la valuacion parcial en el primero de sus parametros.
 visibilidad :: Exp -> Integer
 visibilidad = foldExp fVar fNot fOr fAnd fd fb
     where   fVar = const 0
@@ -29,18 +41,20 @@ visibilidad = foldExp fVar fNot fOr fAnd fd fb
             fd = (+1)
             fb= (+1)
 
--- Ejercicio 12 -- No se si estan bien fd y fb
+-- Ejercicio 12
+-- Extraer las variables proposicionales que aparecen en la formula, sin repetir.
+--    * Var es el caso base, por lo que utilizare una lambda que dado p me devuelve [p]. 
+--    * Or y And que seran bifurcaciones en el arbol de recursion y por lo tanto 
+--      utilizaremos la union de conjuntos.
+--    * Not, D y B no adicionaran ningun simbolo, por lo que utilizare id.
 extraer :: Exp -> [Prop]
 extraer = foldExp fVar fNot fOr fAnd fd fb
     where   fVar = (\p -> [p])
             fNot = id
-            fOr = unionConj
-            fAnd = unionConj
+            fOr = Data.List.union
+            fAnd = Data.List.union
             fd = id
             fb = id
-
-unionConj :: Eq a => [a] -> [a] -> [a]
-unionConj a b = filter (\x -> not (x `elem` b)) a ++ b
             
 -- Ejercicio 13
 eval :: Modelo -> Mundo -> Exp -> Bool

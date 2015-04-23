@@ -35,7 +35,8 @@ vecinos :: Grafo a -> a -> [a]
 vecinos (G ns ejes) = (\y -> ejes y)
 
 -- Ejercicio 4
--- Agrega un nodo al grafo en el caso en el que el mismo no le pertenezca. Caso contrario, devuelve el grafo original.
+-- Agrega un nodo al grafo en el caso en el que el mismo no le pertenezca. 
+-- Caso contrario, devuelve el grafo original.
 agNodo :: Eq a => a -> Grafo a -> Grafo a
 agNodo x (G ns t) = if x `elem` ns then (G ns t) else (G (x:ns) t)
 
@@ -46,10 +47,12 @@ agNodo x (G ns t) = if x `elem` ns then (G ns t) else (G (x:ns) t)
 --      de sacar y para los demás nodos devuelve los mismos vecinos de
 --      antes salvo el nodo que se sacó.
 sacarNodo :: Eq a => a -> Grafo a -> Grafo a
-sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) (\x -> if (x==n) then [] else (filter (/=n) (ejes x)))
+sacarNodo n (G nodos ejes) = G (filter (/=n) nodos) 
+                            (\x -> if (x==n) then [] else (filter (/=n) (ejes x)))
 
 -- Ejercicio 6
--- Devuelve el grafo ingresado por parámetro con el agregado del eje que une el primer nodo de la tupla con el segundo.
+-- Devuelve el grafo ingresado por parámetro con el agregado del eje que une el 
+-- primer nodo de la tupla con el segundo.
 --    * Se verifica si y pertenece a la lista de vecinos de x
 --    * Si lo hace, se devuelve el grafo con la funcion sin modificar
 --    * Si no, se modifica la funcion para agregar la nueva arista y se devuelve el grafo.
@@ -73,35 +76,26 @@ lineal = foldr (\n rec ->  if null (nodos rec)
 
 -- Ejercicio 8
 -- Devuelve un grafo con la unión de los nodos de los dos que entran por parámetro. 
--- Los nodos pueden estar en ambos grafos por lo que hay que unir los vecinos de forma adecuada. 
--- Definimos 2 funciones: 
-		-- La primera es una unión de conjuntos que se utiliza para filtrar nodos repetidos. 
-		-- La segunda devuelve los vecinos de cada nodo en el grafo si el mismo le pertenece. 
-		-- Caso contrario, devuelve vacío. 
--- Luego, utilizamos la unión de conjuntos para unir los nodos y los vecinos de dameVecinos.
+-- Utilizaremos la unión de conjuntos para unir los nodos y los vecinos evitando repetidos.
 union :: Eq a => Grafo a -> Grafo a -> Grafo a
-union ga gb = G (unionConj (nodos ga) (nodos gb)) (\x -> unionConj (dameVecinos x ga) (dameVecinos x gb))
-
-unionConj :: Eq a => [a] -> [a] -> [a]
-unionConj a b = filter (\x -> not (x `elem` b)) a ++ b
-
-dameVecinos :: Eq a => a -> Grafo a -> [a]
-dameVecinos x (G ns ejes) = if x `elem` ns then (ejes x) else []
-
+union ga gb = G (Data.List.union (nodos ga) (nodos gb)) 
+                (\x -> Data.List.union ((vecinos ga) x) ((vecinos gb) x))
 
 -- Ejercicio 9
 -- Recorremos los nodos del grafo y por cada nodo agregamos los
 -- vecinos que se obtienen por reflexividad y transitividad.
---   Para reflexividad, simplemente agregamos un loop.
---   Para transitividad, vamos a buscar los vecinos de los vecinos de los
---    vecinos ... de los vecinos del nodo (nodosAlcanzables). Agregamos
---    todos los ejes hacia esos nodos.
+--   * Para reflexividad, simplemente agregamos un loop.
+--   * Para transitividad, vamos a buscar los vecinos de los vecinos de los
+--      vecinos ... de los vecinos del nodo (nodosAlcanzables). Agregamos
+--      todos los ejes hacia esos nodos.
 -- Observar que agregar ejes repetidos no modifica el grafo.
 clausura :: (Eq a) => Grafo a -> Grafo a
 clausura grafoOriginal@(G nodos vecinos) = foldr 
-												(\x grec ->  agEje (x,x) (agEjesDesdeHasta grec x (nodosAlcanzables grec x)))
-												grafoOriginal
-												nodos
+                        (\x grec ->  agEje (x,x) 
+                                    (agEjesDesdeHasta grec x 
+                                        (nodosAlcanzables grec x)))
+                        grafoOriginal
+                        nodos
 
 
 -- agEjesDesdeHasta g x [y1,...,yn] = Al grafo g le agrega los ejes
@@ -123,13 +117,16 @@ agEjesDesdeHasta grafo x = foldr (\y grec -> agEje (x,y) grec) grafo
 -- El punto fijo justamente se alcanza cuando se recorrieron todos
 -- los nodos alcanzables (clausura transitiva) desde el nodo inicial.
 nodosAlcanzables :: (Eq a) => Grafo a -> a -> [a]
-nodosAlcanzables grafo n = puntoFijo (\listaNodos -> (Data.List.union listaNodos (vecinosDeTodos grafo listaNodos))) [n]
+nodosAlcanzables grafo n = puntoFijo 
+                                (\listaNodos -> (Data.List.union listaNodos 
+                                (vecinosDeTodos grafo listaNodos))) [n]
 
 
 -- Toma un grafo y una lista de nodos y devuelve una lista que tiene
 -- todos los vecinos de esos (sin repetidos)
 vecinosDeTodos :: (Eq a) => Grafo a -> [a] -> [a]
-vecinosDeTodos (G nodos vecinos) = foldr (\x rec -> (Data.List.union rec (vecinos x))) []
+vecinosDeTodos (G nodos vecinos) = foldr (\x rec -> 
+                                    (Data.List.union rec (vecinos x))) []
 
 
 -- Punto fijo de f para un valor x de entrada. Es decir devuelve
@@ -138,7 +135,8 @@ vecinosDeTodos (G nodos vecinos) = foldr (\x rec -> (Data.List.union rec (vecino
 -- infinito y la condición implica que el primer elemento de la lista,
 -- será el punto fijo de f.
 puntoFijo :: (Eq a) => (a -> a) -> a -> a
-puntoFijo f x = [(aplicarNVeces n f x) | n <- [1..], (aplicarNVeces n f x) == (aplicarNVeces (n-1) f x)] !! 0
+puntoFijo f x = [(aplicarNVeces n f x) | n <- [1..], 
+                (aplicarNVeces n f x) == (aplicarNVeces (n-1) f x)] !! 0
 
 
 -- Para aplicar n veces f, usamos un esquema de recursión sobre la lista
