@@ -1,0 +1,6 @@
+Programa: Kate
+Opts: Line-numbers, header
+Header: l: %f c: r: %p
+Margenes: 
+    Up-Down: 0.6
+    Left-Right: 0.5
