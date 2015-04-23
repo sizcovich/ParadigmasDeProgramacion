@@ -28,38 +28,56 @@ testsGrafo = test [
 	[1] ~~? (nodos (agNodo 1 vacio)),
 	[1,2] ~~? (nodos (agNodo 2 (agNodo 1 vacio))),
 	[1,2] ~~? (nodos (agNodo 2 (agNodo 2 (agNodo 1 vacio)))),
+        
 	-- Ej 3,6 (agrega ejes, ver vecinos)
 	[] ~~? (vecinos (agNodo 3 (agNodo 2 (agNodo 1 vacio))) 1),
 	[] ~~? (vecinos (agNodo 3 (agNodo 2 (agNodo 1 vacio))) 5), -- es total
 	[2] ~~? (vecinos (agEje (3,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))) 3),
-	[2,3] ~~? (vecinos (agEje (3,3) (agEje (3,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) 3),
+	[2,3] ~~? (vecinos (agEje (3,3) (agEje (3,2) 
+                (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) 3),
 	[2] ~~? (vecinos (agEje (3,2) (agEje (3,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) 3),
-	[1,2,3,4] ~~? (vecinos (agEje (5,1) (agEje (5,2) (agEje (5,3) (agEje (5,4) (agNodo 5 (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))))) 5),
+	[1,2,3,4] ~~? (vecinos (agEje (5,1) (agEje (5,2) (agEje (5,3) (agEje (5,4) 
+                    (agNodo 5 (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))))) 5),
+        
 	-- Ej 5 (sacar nodo)
 	[1,3] ~~? nodos (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))),
-	[1,2,3] ~~? nodos (agNodo 2 (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))),
+	[1,2,3] ~~? nodos (agNodo 2 (sacarNodo 2 
+                        (agNodo 3 (agNodo 2 (agNodo 1 vacio))))),
 	[1] ~~? vecinos (sacarNodo 2 (agEje (3,2) (agEje (3,1) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))) 3,
-	[] ~~? vecinos (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))) 2, -- sacar nodo mantiene que sea funcion total
+	[] ~~? vecinos (sacarNodo 2 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))) 2,
+	
 	-- Ej 7 (lineal)
 	(agEje (2,3) (agEje (1,2) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))) ~=? lineal [1,2,3],
 
 	-- Ej 8 (union de grafos)
+	-- Grafos disjuntos
 	(agEje (3,4) (agEje (1,2) (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))
 						~=? union (agEje (3,4) (agNodo 4 (agNodo 3 vacio)))
-						          (agEje (1,2)(agNodo 2 (agNodo 1 vacio))), -- Grafos disjuntos
+						          (agEje (1,2)(agNodo 2 (agNodo 1 vacio))),
+    -- Grafo vacio
     (agEje (1,2) (agNodo 2 (agNodo 1 vacio)))
 						~=? union vacio
-						          (agEje (1,2)(agNodo 2 (agNodo 1 vacio))), -- Grafo vacio
-	(lineal [1,2,3,4,5,6]) ~=? union (lineal [1,2,3]) (lineal [3,4,5,6]), 							-- Grafos lineales
+						          (agEje (1,2)(agNodo 2 (agNodo 1 vacio))),
+    -- Grafos lineales
+	(lineal [1,2,3,4,5,6]) ~=? union (lineal [1,2,3]) (lineal [3,4,5,6]),
+    -- Algunos nodos en común
 	(agEje (1,2) (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))
 						~=? union (agEje (1,2) (agNodo 1 (agNodo 2 vacio)))
-								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Algunos nodos en común
+								  (agEje (1,3) (agEje (2,3) 
+                                        (agNodo 3 (agNodo 2 (agNodo 1 vacio))))),
+    
+    -- Grafos idénticos
 	(agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
-				        ~=? union (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
-								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Grafos idénticos
+				        ~=? union (agEje (1,3) (agEje (2,3) 
+                                        (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
+								  (agEje (1,3) (agEje (2,3) 
+                                        (agNodo 3 (agNodo 2 (agNodo 1 vacio))))),
+    -- Grafos idénticos en distinto orden
 	(agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))
-				        ~=? union (agEje (1,3) (agNodo 1 (agEje (2,3) (agNodo 3 (agNodo 2 vacio)))))
-								  (agEje (1,3) (agEje (2,3) (agNodo 3 (agNodo 2 (agNodo 1 vacio))))), -- Grafos idénticos en distinto orden
+				        ~=? union (agEje (1,3) (agNodo 1 (agEje (2,3) 
+                                        (agNodo 3 (agNodo 2 vacio)))))
+								  (agEje (1,3) (agEje (2,3) 
+                                        (agNodo 3 (agNodo 2 (agNodo 1 vacio))))),
 	
 	-- Ej 9 (clausura transitiva)
 	-- hago un grafo que es un ciclo y deberia obtener un completo con la clausura
@@ -113,14 +131,17 @@ testsLomoba = test [
 	
     -- Ej 15
 	[1] ~~? (\(K g f) -> nodos g)(quitar (parse "p&&[]q") modeloKrEnunciado),
-	[] ~~? ((\(K g f) -> f)(quitar (parse "p&&[]q") modeloKrEnunciado)) "q", -- mundos donde vale "q"
-	[1] ~~? ((\(K g f) -> f)(quitar (parse "p&&[]q") modeloKrEnunciado)) "p", -- mundos donde vale "p"
+	[] ~~? ((\(K g f) -> f)(quitar (parse "p&&[]q") modeloKrEnunciado)) "q",
+	[1] ~~? ((\(K g f) -> f)(quitar (parse "p&&[]q") modeloKrEnunciado)) "p",
+	
+	
 	
 	[2,3] ~~? (\(K g f) -> nodos g)(quitar (parse "q") modeloKrEnunciado),
-	[3] ~~? ((\(K g f) -> f)(quitar (parse "q") modeloKrEnunciado)) "r", -- mundos donde vale "r"
-	[2,3] ~~? ((\(K g f) -> f)(quitar (parse "q") modeloKrEnunciado)) "q", -- mundos donde vale "q"
+	[3] ~~? ((\(K g f) -> f)(quitar (parse "q") modeloKrEnunciado)) "r",
+	[2,3] ~~? ((\(K g f) -> f)(quitar (parse "q") modeloKrEnunciado)) "q",
 	
-	(\(K g f) -> g)modeloKrEnunciado ~=? (\(K g f) -> g)(quitar (parse "q||<>r") modeloKrEnunciado), -- no saca nada
+	(\(K g f) -> g)modeloKrEnunciado ~=? 
+                (\(K g f) -> g)(quitar (parse "q||<>r") modeloKrEnunciado),
 
 	-- Ej 16
 	True ~=? cierto ciclo (parse "p"),
@@ -141,21 +162,23 @@ modeloKrEnunciado = K (agEje (1,2) (agEje (1,3) (agNodo 3 (agNodo 2 (agNodo 1 va
 									_ | p=="p" -> [1]
 									  | p=="q" -> [2,3]
 									  | p=="r" -> [3]
-									  | otherwise -> []) -- debe ser total, segun el enunciado
+									  | otherwise -> []) -- debe ser total
 
-modeloKr1 = K (agEje (1,2) (agEje (1,3) (agEje (3,4) (agEje (2,5) (agNodo 5 (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))))))
+modeloKr1 = K (agEje (1,2) (agEje (1,3) (agEje (3,4) (agEje (2,5) 
+                (agNodo 5 (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio)))))))))
 						 (\p -> case () of
 									_ | p=="p" -> [1]
 									  | p=="q" -> [2,3]
 									  | p=="r" -> [4,5]
-									  | otherwise -> []) -- debe ser total, segun el enunciado
+									  | otherwise -> []) -- debe ser total
 
-ciclo = K (agEje (1,2) (agEje (2,3) (agEje (3,4) (agEje (4,5) (agEje (5,1) (agNodo 5 (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))))))
+ciclo = K (agEje (1,2) (agEje (2,3) (agEje (3,4) (agEje (4,5) (agEje (5,1) 
+                (agNodo 5 (agNodo 4 (agNodo 3 (agNodo 2 (agNodo 1 vacio))))))))))
 						 (\p -> case () of
 									_ | p=="p" -> [1, 2, 3, 4, 5]
 									  | p=="q" -> [3]
 									  | p=="r" -> [4]
-									  | otherwise -> []) -- debe ser total, segun el enunciado
+									  | otherwise -> []) -- debe ser total
 
 ---------------
 --  helpers  --
