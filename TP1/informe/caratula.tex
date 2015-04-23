@@ -1,75 +1,80 @@
-\nonstopmode
-\documentclass[10pt, a4paper]{article}
-%\usepackage{subfig}
+\documentclass[a4paper]{article}
 
-\parindent=20pt
-\parskip=8pt
-\usepackage[width=15.5cm, left=3cm, top=2.5cm, height= 24.5cm]{geometry}
 \usepackage[spanish]{babel}
 \usepackage[utf8]{inputenc}
-%\usepackage{caratula}
-\pagenumbering{gobble}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{multicol}
+\usepackage{makeidx}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{algpseudocode}
+\usepackage{courier}
+\usepackage{enumitem}
 
-% Acomodo fancyhdr.
-\pagestyle{fancy}
-\thispagestyle{fancy}
-\addtolength{\headheight}{1pt}
-\renewcommand{\footrulewidth}{0.4pt}
-\renewcommand{\thesubsubsection}{\thesubsection.\alph{subsubsection}}
+\newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\bigl(#1\bigr)}}
+\lstset{language=C++, showstringspaces=false, tabsize=2, breaklines=true, title=\lstname}
 
+\usepackage[margin=1in]{geometry}
 
-\author{Algoritmos y Estructuras de Datos III, DC, UBA.}
-\date{}
-%\title{}
+\title{PLP - TP1}
+
+\author{Izcovich, Rama, Requeni}
+
+\date{\today}
+
+\makeindex
 
 \begin{document}
-	
-\thispagestyle{caratula}
+\newgeometry{margin=2cm}
+\pagenumbering{gobble}
+\raggedleft
+\includegraphics[width=8cm]{caratula/logo1.jpg}\\
 
-\begin{center}
+\raggedright
+\vspace{3cm}
+{\Huge \bfseries Trabajo Práctico 1}
+\rule{\textwidth}{0.02in}
+\large Jueves 23 de abril de 2015 \hfill Paradigmas de Lenguajes de Programación
+\vspace{1.5cm}
 
-\vspace{2cm}
-
-Departamento de Computación,\\
-Facultad de Ciencias Exactas y Naturales,\\
-Universidad de Buenos Aires
-
-\vspace{4cm}
-
-\begin{Huge}
-Paradigmas de Lenguajes de Programación
-\end{Huge}
-
-\vspace{0.5cm}
-
-\begin{huge}
-Trabajo Práctico Nº1
-\end{huge}
-
-\vspace{1cm}
-
-Primer Cuatrimestre de 2015
-
-\vspace{4cm}
-
-
-\begin{Large}
-Grupo: Alpha
-\end{Large}
-
-\vspace{1cm}
-
-\begin{tabular}{|c|c|c|}
-\hline
-Apellido y Nombre & LU & E-mail\\
-\hline
-Izcovich, Sabrina      & 550/11 & sizcovich@gmail.com\\
-Rama, Roberto        & 490/11 & bertoski@gmail.com\\
-Requeni, Gastón        & 400/11 & grequeni@hotmail.com\\
-\hline
+\normalsize
+\begin{tabular}{|l@{\hspace{5ex}}c@{\hspace{5ex}}l|}
+        \hline
+        \rule{0pt}{1.2em}Integrante & LU & Correo electr\'onico\\[0.2em]
+        \hline
+        \rule{0pt}{1.2em} Izcovich, Sabrina & 550/11 &\tt sizcovich@gmail.com\\[0.2em]
+        \rule{0pt}{1.2em} Rama, Roberto  & 490/11 &\tt bertoski@gmail.com\\[0.2em]
+        \rule{0pt}{1.2em} Requeni, Gastón  & 400/11 &\tt grequeni@hotmail.com\\[0.2em]
+        \hline
 \end{tabular}
 
-\end{center}
+\vspace{1.0cm}
+\raggedright
 
-\newpage
+\begin{multicols}{2}
+\includegraphics[width=8cm]{caratula/logo-uba.png}
+
+\columnbreak
+\vspace*{4.5cm}
+\raggedleft
+\textbf{Facultad de Ciencias Exactas y Naturales}\\
+Universidad de Buenos Aires\\
+\small
+Ciudad Universitaria - (Pabellon I/Planta Baja)\\
+Intendente G\"uiraldes 2160 - C1428EGA\\
+Ciudad Autonoma de Buenos Aires - Rep. Argentina\\
+Tel/Fax: (54 11) 4576-3359\\
+http://www.fcen.uba.ar
+\end{multicols}
+
 \end{document}
+
+
