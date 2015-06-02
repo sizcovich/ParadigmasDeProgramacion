@@ -1,17 +1,26 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
+%% Tablero ejemplo
+%%%%%%%%%%%%%%%%%%%%%%%%
+tablero(ej5x5, T) :- tablero(5, 5, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T).
+
+tablero(libre20, T) :- tablero(20, 20, T).
+
+%%%%%%%%%%%%%%%%%%%%%%%%
 %% Tablero
 %%%%%%%%%%%%%%%%%%%%%%%%
-
 %% Ejercicio 1
 %% tablero(+Filas,+Columnas,-Tablero) instancia una estructura de tablero en blanco
 %% de Filas x Columnas, con todas las celdas libres.
-tablero(_,_,_).
+tablero(0,_,[]).
+tablero(F,C,[X|Xs]) :- length(X, C), Y is F-1, tablero(Y, C, Xs).
 
 
 %% Ejercicio 2
 %% ocupar(+Pos,?Tablero) será verdadero cuando la posición indicada esté ocupada.
-ocupar(_,_).
+ocupar(pos(X,Y),Xs) :- posicion(X, Y, Xs, ocupada).
 
+%% ocupar(+X,+Y,?Tablero,?Elem) es verdadero si Elem es el elemento (X,Y) del tablero T.
+posicion(X, Y, T, Elem) :- nth0(X, T, Elemento), nth0(Y, Elemento, Elem).
 
 %% Ejercicio 3
 %% vecino(+Pos, +Tablero, -PosVecino) será verdadero cuando PosVecino sea
@@ -19,7 +28,6 @@ ocupar(_,_).
 %% pos(F,C), donde Pos=pos(F,C). Las celdas contiguas puede ser a lo sumo cuatro
 %% dado que el robot se moverá en forma ortogonal.
 vecino(_,_,_).
-
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
