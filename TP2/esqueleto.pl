@@ -27,7 +27,9 @@ posicion(X, Y, T, Elem) :- nth0(X, T, Elemento), nth0(Y, Elemento, Elem).
 %% un átomo de la forma pos(F', C') y pos(F',C') sea una celda contigua a
 %% pos(F,C), donde Pos=pos(F,C). Las celdas contiguas puede ser a lo sumo cuatro
 %% dado que el robot se moverá en forma ortogonal.
-vecino(_,_,_).
+vecino(pos(X1,X2),[X|Xs],pos(V1,V2)) :- length([X|Xs],L1),length(X,L2),
+							between(-1,1,R), V1 = X1+R, V1 =< L1, V1 >= 0, 
+							between(-1,1,J), V2 = X2+J, V2 =< L2, V2 >= 0.
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
