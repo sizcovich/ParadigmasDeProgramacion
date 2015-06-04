@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
-%% Tablero ejemplo
+%% Tableros ejemplo
 %%%%%%%%%%%%%%%%%%%%%%%%
 tablero(ej5x5, T) :- tablero(5, 5, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T).
 
@@ -12,7 +12,7 @@ tablero(libre20, T) :- tablero(20, 20, T).
 %% tablero(+Filas,+Columnas,-Tablero) instancia una estructura de tablero en blanco
 %% de Filas x Columnas, con todas las celdas libres.
 tablero(0,_,[]).
-tablero(F,C,[X|Xs]) :- length(X, C), Y is F-1, tablero(Y, C, Xs).
+tablero(F,C,[X|Xs]) :- length(X, C), Y is F-1, tablero(Y, C, Xs), !.
 
 
 %% Ejercicio 2
@@ -28,9 +28,10 @@ posicion(X, Y, T, Elem) :- nth0(X, T, Elemento), nth0(Y, Elemento, Elem).
 %% pos(F,C), donde Pos=pos(F,C). Las celdas contiguas puede ser a lo sumo cuatro
 %% dado que el robot se moverá en forma ortogonal.
 vecino(pos(X1,Y1),[X|Xs],pos(V1,V2)) :- length([X|Xs],Alto),length(X,Ancho),
-							between(-1,1,Iterador1), V1 is X1+Iterador1, V1 < Alto, V1 >= 0, 
-							between(-1,1,Iterador2), V2 is Y1+Iterador2, V2 < Ancho, V2 >= 0,
-							AbsIt1 is abs(Iterador1), AbsIt2 is abs(Iterador2), SumAbs is AbsIt1 + AbsIt2, SumAbs = 1.
+							between(-1,1,Iterador1), between(-1,1,Iterador2), 
+							AbsIt1 is abs(Iterador1), AbsIt2 is abs(Iterador2), SumAbs is AbsIt1 + AbsIt2, SumAbs = 1,
+							V1 is X1+Iterador1, V1 < Alto, V1 >= 0, 
+							V2 is Y1+Iterador2, V2 < Ancho, V2 >= 0.
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
