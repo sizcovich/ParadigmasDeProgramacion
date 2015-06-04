@@ -39,7 +39,7 @@ vecino(pos(X1,Y1),[T|Ts],pos(V1,V2)) :- length([T|Ts],Alto),length(T,Ancho),
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
-vecinoLibre(pos(X1,Y1),T,pos(V1,V2)) :- vecino(pos(X1,Y1),T,pos(V1,V2)), posicion(V1,V2,T,Elemento), Elemento =\= ocupada.
+vecinoLibre(pos(X1,Y1),T,pos(V1,V2)) :- vecino(pos(X1,Y1),T,pos(V1,V2)), posicion(V1,V2,T,Elemento), dif(Elemento, ocupada).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
