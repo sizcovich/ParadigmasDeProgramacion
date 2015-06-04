@@ -3,7 +3,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
 tablero(ej5x5, T) :- tablero(5, 5, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T).
 
+tablero(unaOcupada, T):- tablero(3, 2, T), ocupar(pos(1, 0), T).
 tablero(libre20, T) :- tablero(20, 20, T).
+tablero(libre3x2, T) :- tablero(3, 2, T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Tablero
@@ -27,15 +29,17 @@ posicion(X, Y, T, Elem) :- nth0(X, T, Elemento), nth0(Y, Elemento, Elem).
 %% un átomo de la forma pos(F', C') y pos(F',C') sea una celda contigua a
 %% pos(F,C), donde Pos=pos(F,C). Las celdas contiguas puede ser a lo sumo cuatro
 %% dado que el robot se moverá en forma ortogonal.
-vecino(pos(X1,Y1),[X|Xs],pos(V1,V2)) :- length([X|Xs],Alto),length(X,Ancho),
-							between(-1,1,Iterador1), between(-1,1,Iterador2), 
-							AbsIt1 is abs(Iterador1), AbsIt2 is abs(Iterador2), SumAbs is AbsIt1 + AbsIt2, SumAbs = 1,
+vecino(pos(X1,Y1),[T|Ts],pos(V1,V2)) :- length([T|Ts],Alto),length(T,Ancho),
+							between(-1,1,Iterador1), between(-1,1,Iterador2),
 							V1 is X1+Iterador1, V1 < Alto, V1 >= 0, 
-							V2 is Y1+Iterador2, V2 < Ancho, V2 >= 0.
+							V2 is Y1+Iterador2, V2 < Ancho, V2 >= 0,
+							AbsIt1 is abs(Iterador1), AbsIt2 is abs(Iterador2), SumAbs is AbsIt1 + AbsIt2, SumAbs = 1.
+%%En este ejercicio usamos Generate&Test, creando todos los posibles valores y evaluándolos más tarde con alguna restricción.
+
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
-vecinoLibre(_,_,_).
+vecinoLibre(pos(X1,Y1),T,pos(V1,V2)) :- vecino(pos(X1,Y1),T,pos(V1,V2)), posicion(V1,V2,T,Elemento), Elemento =\= ocupada.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
