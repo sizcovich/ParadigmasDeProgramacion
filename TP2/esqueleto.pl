@@ -26,7 +26,7 @@ posicion(pos(X, Y), T, Elem) :- var(Elem), nth0(X, T, Fila), nth0(Y, Fila, ElemT
 posicion(pos(X, Y), T, Elem) :- nonvar(Elem), nth0(X, T, Fila), nth0(Y, Fila, ocupada).
 
 %% Ejercicio 3
-%% vecino(+Pos, +Tablero, -PosVecino) será verdadero cuando PosVecino sea
+%% vecino(+Pos, +Tablero, ?PosVecino) será verdadero cuando PosVecino sea
 %% un átomo de la forma pos(F', C') y pos(F',C') sea una celda contigua a
 %% pos(F,C), donde Pos=pos(F,C). Las celdas contiguas puede ser a lo sumo cuatro
 %% dado que el robot se moverá en forma ortogonal.
@@ -38,7 +38,7 @@ vecino(pos(X1,Y1),[T|Ts],pos(V1,V2)) :- length([T|Ts],Alto),length(T,Ancho),
 %%En este ejercicio usamos Generate&Test, creando todos los posibles valores y evaluándolos más tarde con alguna restricción.
 
 %% Ejercicio 4
-%% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
+%% vecinoLibre(+Pos, +Tablero, ?PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
 vecinoLibre(Pos,T,PosVecino) :- vecino(Pos,T,PosVecino), posicion(PosVecino,T,_).
 
@@ -59,7 +59,7 @@ camino(I,F,T,C) :- caminoConPosicionesVisitadas(I,F,T,[],C).
 
 %% caminoConPosicionesVisitadas(+Inicio, +Fin, +Tablero, +Lista, -Camino)
 caminoConPosicionesVisitadas(F,F,_,_,[F]).
-caminoConPosicionesVisitadas(I,F,T,L,[I|Cs]) :- vecinoLibre(I,T,V), not(member(V,L)), caminoConPosicionesVisitadas(V,F,T,[I|L],Cs).
+caminoConPosicionesVisitadas(I,F,T,H,[I|Cs]) :- vecinoLibre(I,T,V), not(member(V,H)), caminoConPosicionesVisitadas(V,F,T,[I|H],Cs).
 
 %% sinRepetidos(+Ls)
 sinRepetidos([]).
@@ -69,7 +69,13 @@ sinRepetidos([E|Ls]) :- not(member(E,Ls)), sinRepetidos(Ls).
 %% Ejercicio 6
 %% cantidadDeCaminos(+Inicio, +Fin, +Tablero, ?N) que indique la cantidad de caminos
 %% posibles sin ciclos entre Inicio y Fin.
-cantidadDeCaminos(_,_,_,_).
+cantidadDeCaminos(I,I,_,1).
+cantidadDeCaminos(I,F,T,N) :- I = pos(X,Y), H = [I], R is Y+1, L is Y-1, D is X+1, U is X-1, cDC2(I,pos(X,R),F,T,N1,H), cDC2(I,pos(X,L),F,T,N2,H), cDC2(I,pos(U,Y),F,T,N3,H), cDC2(I,pos(D,Y),F,T,N4,H), N is N1 + N2 + N3 + N4.
+
+cDC2(_,I,I,_,1,_).
+cDC2(A,I,F,T,N,_) :- I\=F, not(vecinoLibre(A,T,I)), N=0.
+cDC2(_,I,F,_,N,H) :- I\=F, member(I,H), N=0.
+cDC2(A,pos(X,Y),F,T,N,H) :- I = pos(X,Y), I\=F, not(member(I,H)), vecinoLibre(A,T,I), R is Y+1, L is Y-1, D is X+1, U is X-1, cDC2(I,pos(X,R),F,T,N1,[I|H]), cDC2(I,pos(X,L),F,T,N2,[I|H]), cDC2(I,pos(U,Y),F,T,N3,[I|H]), cDC2(I,pos(D,Y),F,T,N4,[I|H]), N is N1 + N2 + N3 + N4.
 
 %% Ejercicio 7
 %% camino2(+Inicio, +Fin, +Tablero, -Camino) ídem camino/4 pero se espera una heurística
