@@ -19,10 +19,11 @@ tablero(F,C,[X|Xs]) :- length(X, C), Y is F-1, tablero(Y, C, Xs), !.
 
 %% Ejercicio 2
 %% ocupar(+Pos,?Tablero) será verdadero cuando la posición indicada esté ocupada.
-ocupar(pos(X,Y),Xs) :- posicion(X, Y, Xs, ocupada).
+ocupar(Pos,T) :- posicion(Pos, T, ocupada).
 
-%% ocupar(+X,+Y,?Tablero,?Elem) es verdadero si Elem es el elemento (X,Y) del tablero T.
-posicion(X, Y, T, Elem) :- nth0(X, T, Elemento), nth0(Y, Elemento, Elem).
+%% posicion(pos(+X,+Y),?Tablero,?Elem) es verdadero si Elem es el elemento (X,Y) del tablero T.
+posicion(pos(X, Y), T, Elem) :- var(Elem), nth0(X, T, Fila), nth0(Y, Fila, ElemT), var(ElemT).
+posicion(pos(X, Y), T, Elem) :- nonvar(Elem), nth0(X, T, Fila), nth0(Y, Fila, ocupada).
 
 %% Ejercicio 3
 %% vecino(+Pos, +Tablero, -PosVecino) será verdadero cuando PosVecino sea
@@ -39,7 +40,7 @@ vecino(pos(X1,Y1),[T|Ts],pos(V1,V2)) :- length([T|Ts],Alto),length(T,Ancho),
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, -PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
-vecinoLibre(pos(X1,Y1),T,pos(V1,V2)) :- vecino(pos(X1,Y1),T,pos(V1,V2)), posicion(V1,V2,T,Elemento), dif(Elemento, ocupada).
+vecinoLibre(Pos,T,PosVecino) :- vecino(Pos,T,PosVecino), posicion(PosVecino,T,_).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,7 +55,16 @@ vecinoLibre(pos(X1,Y1),T,pos(V1,V2)) :- vecino(pos(X1,Y1),T,pos(V1,V2)), posicio
 %% Notar que la cantidad de caminos es finita y por ende se tiene que poder recorrer
 %% todas las alternativas eventualmente.
 %% Consejo: Utilizar una lista auxiliar con las posiciones visitadas
-camino(_,_,_,_).
+camino(I,F,T,C) :- caminoConPosicionesVisitadas(I,F,T,[],C).
+
+%% caminoConPosicionesVisitadas(+Inicio, +Fin, +Tablero, +Lista, -Camino)
+caminoConPosicionesVisitadas(F,F,_,_,[F]).
+caminoConPosicionesVisitadas(I,F,T,L,[I|Cs]) :- vecinoLibre(I,T,V), not(member(V,L)), caminoConPosicionesVisitadas(V,F,T,[I|L],Cs).
+
+%% sinRepetidos(+Ls)
+sinRepetidos([]).
+sinRepetidos([E|Ls]) :- not(member(E,Ls)), sinRepetidos(Ls).
+
 
 %% Ejercicio 6
 %% cantidadDeCaminos(+Inicio, +Fin, +Tablero, ?N) que indique la cantidad de caminos
