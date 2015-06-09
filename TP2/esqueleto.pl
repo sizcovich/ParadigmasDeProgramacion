@@ -6,15 +6,21 @@
 %% de Filas x Columnas, con todas las celdas libres.
 tablero(0,_,[]).
 tablero(F,C,[X|Xs]) :- length(X, C), Y is F-1, tablero(Y, C, Xs), !.
-
+%% Genera una lista de F listas (de longitud C). Utilizamos el cut para que devuelva la primer solución sin continuar
+%% la exploración dado que el tablero empieza sin instanciar.
 
 %% Ejercicio 2
 %% ocupar(+Pos,?Tablero) será verdadero cuando la posición indicada esté ocupada.
 ocupar(Pos,T) :- posicion(Pos, T, ocupada).
+%% Instancia la posición Pos como ocupada.
 
 %% posicion(pos(+X,+Y),?Tablero,?Elem) es verdadero si Elem es el elemento (X,Y) del tablero T.
 posicion(pos(X, Y), T, Elem) :- var(Elem), nth0(X, T, Fila), nth0(Y, Fila, ElemT), var(ElemT).
 posicion(pos(X, Y), T, Elem) :- nonvar(Elem), nth0(X, T, Fila), nth0(Y, Fila, ocupada).
+%% Si pos(X,Y) no está instanciada (se verifica con var), el elemento de dicha posición debe ser una variable.
+%% Si la posición (X,Y) está instanciada (se verifica con nonvar) significa que está ocupada, entonces simplemente se 
+%% pide que el valor (X,Y) sea igual a ocupada.
+
 
 %% Ejercicio 3
 %% vecino(+Pos, +Tablero, ?PosVecino) será verdadero cuando PosVecino sea
@@ -22,17 +28,24 @@ posicion(pos(X, Y), T, Elem) :- nonvar(Elem), nth0(X, T, Fila), nth0(Y, Fila, oc
 %% pos(F,C), donde Pos=pos(F,C). Las celdas contiguas puede ser a lo sumo cuatro
 %% dado que el robot se moverá en forma ortogonal.
 vecino(pos(X1,Y1),[T|Ts],pos(V1,V2)) :- length([T|Ts],Alto),length(T,Ancho),
-							between(-1,1,Iterador1), between(-1,1,Iterador2),
-							V1 is X1+Iterador1, V1 < Alto, V1 >= 0, 
+							between(-1,1,Iterador1),
+							V1 is X1+Iterador1, V1 < Alto, V1 >= 0,
+							between(-1,1,Iterador2),
 							V2 is Y1+Iterador2, V2 < Ancho, V2 >= 0,
 							AbsIt1 is abs(Iterador1), AbsIt2 is abs(Iterador2), SumAbs is AbsIt1 + AbsIt2, SumAbs = 1.
-%%En este ejercicio usamos Generate&Test, creando todos los posibles valores y evaluándolos más tarde con alguna restricción.
+%% En este ejercicio usamos Generate&Test creando, en primer lugar, todos los posibles valores de Iterador1 para evaluarlos 
+%% más tarde y, creando luego, todos los valores de Iterador2 para evaluarlos también.
+%% Para este ejercicio, tuvimos en cuenta que se considera vecino al elemento movido una coordenada para
+%% alguna de las siguientes direcciones: derecha, izquierda, arriba o abajo. Para eso, sumamos o restamos 0 o 1 a ambas 
+%% coordenadas pidiendo que el valor absoluto del total de lo que se suma o resta sea igual a 1. De este modo nos aseguramos 
+%% que sea sólo una coordenada la afectada.
 
 %% Ejercicio 4
 %% vecinoLibre(+Pos, +Tablero, ?PosVecino) idem vecino/3 pero además PosVecino
 %% debe ser una celda transitable (no ocupada) en el Tablero
 vecinoLibre(Pos,T,PosVecino) :- vecino(Pos,T,PosVecino), posicion(PosVecino,T,_).
-
+%% En este caso se toman los vecinos de Pos y se pide que sus respectivas posiciones no estén instanciadas. De este 
+%% modo nos aseguramos de que están libres.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Definicion de caminos
@@ -49,13 +62,10 @@ vecinoLibre(Pos,T,PosVecino) :- vecino(Pos,T,PosVecino), posicion(PosVecino,T,_)
 camino(I,F,T,C) :- caminoConPosicionesVisitadas(I,F,T,[],C).
 
 %% caminoConPosicionesVisitadas(+Inicio, +Fin, +Tablero, +Lista, -Camino)
-caminoConPosicionesVisitadas(F,F,_,_,[F]).
+caminoConPosicionesVisitadas(F,F,_,_,[F]). %% Llegamos a Inicial = Final.
 caminoConPosicionesVisitadas(I,F,T,H,[I|Cs]) :- vecinoLibre(I,T,V), not(member(V,H)), caminoConPosicionesVisitadas(V,F,T,[I|H],Cs).
-
-%% sinRepetidos(+Ls)
-sinRepetidos([]).
-sinRepetidos([E|Ls]) :- not(member(E,Ls)), sinRepetidos(Ls).
-
+%% Se almacenan las posiciones visitadas en un arreglo de forma tal a poder evaluar si ya fue recorrida o no al momento de llegar
+%% a ésta. Para eso, se pide que no pertenezca al arreglo formado (utilizando not(member)).
 
 %% Ejercicio 6
 %% cantidadDeCaminos(+Inicio, +Fin, +Tablero, ?N) que indique la cantidad de caminos
