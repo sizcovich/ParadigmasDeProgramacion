@@ -214,6 +214,8 @@ camino2SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):
 % cantidadDeCaminos2(+Inicio, +Fin, +Tablero, -N)  (solo para corroborar el ejemplo del enunciado)
 cantidadDeCaminos2(Inicio,Fin,T,N):- aggregate_all(count, camino2(Inicio,Fin,T,_), N).
 
+
+
 		
 %% Ejercicio 8
 %% camino3(+Inicio, +Fin, +Tablero, -Camino) ídem camino2/4 pero se espera que
@@ -224,8 +226,173 @@ cantidadDeCaminos2(Inicio,Fin,T,N):- aggregate_all(count, camino2(Inicio,Fin,T,_
 %% desde Inicio en más de 6 pasos.
 %% Notar que dos ejecuciones de camino3/4 con los mismos argumentos deben dar los mismos resultados.
 %% En este ejercicio se permiten el uso de predicados: dynamic/1, asserta/1, assertz/1 y retractall/1.
-:- dynamic camino3/4.
-camino3(I,F,T,C) :- assert(cantidadDeCaminos2(I,F,T,C)).
+
+% El algoritmo es goloso como en camino2, pero vamos guardando en la base
+% de conocimiento las longitudes de los caminos que vamos obteniendo.
+% De esta manera, luego de haber encontrado un primer camino (que por el
+% algoritmo goloso se espera que sea más o menos bueno), se procede a recorrer 
+% el espacio de búsqueda pero deteniendo la búsqueda cuando el camino ya resulta
+% más largo que cualquiera de los caminos hallados.
+% Cada camino nuevo tiene una longitud menor o igual al anterior, entonces
+% la regla se agrega siempre arriba (para que Prolog mire sólo el primer caminoLongitud(X)
+% y como es el más chico no necesita mirar otros).
+camino3(Inicio,Fin,T,C):- 
+		retractall(caminoLongitud(_)), camino3SinCiclos(Inicio,Fin,T,[],C).
+
+% camino3SinCiclos(+Inicio, +Fin, +Tablero, +Recorridos, -Camino)
+% Las reglas definen 1 paso. En cada caso priorizo avanzar hacia la celda Fin.
+% Los casos posibles son:
+%        Base: Ya llegué a destino.
+%        Inicio y Fin están en la misma fila.
+%        Inicio y Fin están en la misma columna.
+%        Ninguno de los anteriores.
+
+caminoDeLongitudMenorA(X):- caminoLongitud(L), L < X, !.  % el cut obliga a que Prolog mire sólo el primer camino (el más corto).
+noHayCaminoDeLongitudMenorA(X):- not(caminoDeLongitudMenorA(X)).
+
+% Base (llegué a destino) (si entra en esta regla, es porque no hay un camino de longitud menor
+% (lo checkea en la regla anterior, usando el +2)
+camino3SinCiclos(Fin, Fin, _, Recorridos, [Fin]):-
+		length(Recorridos, Longit),
+		L is Longit+1,
+		asserta(caminoLongitud(L)).
+
+%% Si Inicio y Fin están en la misma columna, avanzar verticalmente si es posible y si no moverse horizontalmente
+%% hacia cualquier costado (porque se alejaría y da lo mismo cualquier costado). Y si no puede tampoco, entonces retroceder
+%% verticalmente (y se agotaron las opciones).
+camino3SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):-
+		length(Recorridos, Longit),             % Los que recorrí antes del Inicio actual
+		L is Longit + 2,                        % El camino que estoy armando tiene longitud Longit + 1 
+		                                        % (Inicio y V seguro van a formar parte del camino resultante, ya que Inicio!=Fin)
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2,
+		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
+		vecinoLibre(Inicio,T,pos(Iv,J)),        % solo vecinos de la misma columna (avance vertical)
+		Iv =:= I1+sign(I2-I1),                  % Dar un paso vertical avanzando hacia Fin.
+		V = pos(Iv,J),                          % Renombres
+		not(member(V,Recorridos)),              % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+
+camino3SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2,
+		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
+		vecinoLibre(Inicio,T,pos(I1,Jv)),       % solo vecinos de la misma fila que Inicio (avance horizontal)
+		V = pos(I1,Jv),                         % Renombres
+		not(member(V,Recorridos)),              % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+camino3SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2,
+		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
+		vecinoLibre(Inicio,T,pos(Iv,J)),        % solo vecinos de la misma columna (retroceso vertical)
+		Iv =:= I1-sign(I2-I1),                  % Dar un paso vertical avanzando hacia el otro lado.
+		V = pos(Iv,J),                          % Renombres
+		not(member(V,Recorridos)),              % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+%% Si Inicio y Fin están en la misma fila, avanzar horizontalmente si es posible y si no moverse verticalmente
+%% hacia cualquier lado (porque se alejaría y da lo mismo cualquier lado). Y si no puede tampoco, entonces retroceder
+%% horizontalmente (y se agotaron las opciones).
+camino3SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		J1 =\= J2,
+		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(I,Jv)),        % solo vecinos de la misma fila (avance horizontal)
+		Jv =:= J1+sign(J2-J1),                  % Dar un paso horizontal avanzando hacia Fin.
+		V = pos(I,Jv),                          % Renombres
+		not(member(V,Recorridos)),              % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+
+camino3SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		J1 =\= J2,
+		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(Iv,J1)),       % solo vecinos de la misma columna que Inicio (avance vertical)
+		V = pos(Iv,J1),                         % Renombres
+		not(member(V,Recorridos)),              % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+camino3SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		J1 =\= J2,
+		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(I,Jv)),        % solo vecinos de la misma fila (retroceso horizontal)
+		Jv =:= J1-sign(J2-J1),                  % Dar un paso horizontal avanzando hacia el otro lado.
+		V = pos(I,Jv),                          % Renombres
+		not(member(V,Recorridos)),              % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+%% Si Inicio y Fin NO están ni en la misma fila ni en la misma columna, entonces
+%% intento avanzar primero verticalmente hacia Fin. Si no puedo, intento avanzar
+%% horizontalmente hacia Fin. Si no puedo, retrocedo verticalmente. Y si no puedo, 
+%% retrocedo horizontalmente. 
+camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2, J1 =\= J2,
+		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(Iv,J1)),         % solo vecinos de la misma columna (avance vertical)
+		Iv =:= I1+sign(I2-I1),                    % Dar un paso vertical avanzando hacia Fin.
+		V = pos(Iv,J1),                           % Renombres
+		not(member(V,Recorridos)),                % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):-
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2, J1 =\= J2,
+		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(I1,Jv)),         % solo vecinos de la misma fila (avance horizontal)
+		Jv =:= J1+sign(J2-J1),                    % Dar un paso horizontal avanzando hacia Fin.
+		V = pos(I1,Jv),                           % Renombres
+		not(member(V,Recorridos)),                % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2, J1 =\= J2,
+		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(Iv,J1)),         % solo vecinos de la misma columna (retroceso vertical)
+		Iv =:= I1-sign(I2-I1),                    % Dar un paso vertical retrocediendo.
+		V = pos(Iv,J1),                           % Renombres
+		not(member(V,Recorridos)),                % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+		
+camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
+		length(Recorridos, Longit),
+		L is Longit + 2,
+		noHayCaminoDeLongitudMenorA(L),
+		I1 =\= I2, J1 =\= J2,
+		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
+		vecinoLibre(Inicio,T,pos(I1,Jv)),         % solo vecinos de la misma fila (retroceso horizontal)
+		Jv =:= J1-sign(J2-J1),                    % Dar un paso horizontal retrocediendo.
+		V = pos(I1,Jv),                           % Renombres
+		not(member(V,Recorridos)),                % Sin ciclos
+		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+
+
+% cantidadDeCaminos3(+Inicio, +Fin, +Tablero, -N)  (solo para corroborar el ejemplo del enunciado)
+cantidadDeCaminos3(Inicio,Fin,T,N):- aggregate_all(count, camino3(Inicio,Fin,T,_), N).
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Tableros simultáneos
@@ -237,6 +404,7 @@ camino3(I,F,T,C) :- assert(cantidadDeCaminos2(I,F,T,C)).
 %% sólo por celdas transitables de ambos tableros.
 %% Nota: Es posible una implementación que resuelva en forma inmediata casos en los que trivialmente no existe camino dual posible.
 caminoDual(I,F,T1,T2,C) :- camino(I,F,T1,C), camino(I,F,T2,C).
+%% La función evalúa que el camino C del tablero T1 coincida con alguna solución del tablero T2.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Tableros ejemplo
@@ -244,8 +412,19 @@ caminoDual(I,F,T1,T2,C) :- camino(I,F,T1,C), camino(I,F,T2,C).
 
 %aca se testea tablero y ocupar.
 tablero(ej5x5, T) :- tablero(5, 5, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T).
+%%| | | | | |
+%%| |O|O| | |
+%%| | | | | |
+%%| | | | | |
 tablero(ocupadasDelMedio, T) :- tablero(4, 4, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T), ocupar(pos(2, 1), T), ocupar(pos(2, 2), T).
+%%| | | | |
+%%| |O|O| |
+%%| |O|O| |
+%%| | | | |
 tablero(unaOcupada, T):- tablero(3, 2, T), ocupar(pos(1, 0), T).
+%%| | |
+%%|O| |
+%%| | |
 tablero(libre20, T) :- tablero(20, 20, T).
 tablero(libre3x2, T) :- tablero(3, 2, T).
 
@@ -259,20 +438,27 @@ test(3) :- tablero(unaOcupada, T), not(posicion(vecino(pos(1,0),T,pos(0,0)),T,oc
 %vecinoLibre
 test(4) :- tablero(ej5x5, T), vecinoLibre(pos(0,0), T, pos(0,1)).
 test(5) :- tablero(unaOcupada, T), not(vecinoLibre(pos(0,0), T, pos(1,0))).
+test(6) :- tablero(libre20, T), vecinoLibre(pos(10,10),T,X), X = pos(9, 10).
+test(7) :- tablero(libre20, T), vecinoLibre(pos(10,10),T,X), X = pos(10, 9).
+test(8) :- tablero(libre20, T), vecinoLibre(pos(10,10),T,X), X = pos(10, 11).
+test(9) :- tablero(libre20, T), vecinoLibre(pos(10,10),T,X), X = pos(11, 10).
 %camino
-test(6) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(0, 1), pos(1, 1)].
-test(7) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(1, 1)].
-test(8) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(1, 1)].
-test(9) :- tablero(ej5x5, T), camino(pos(0,0), pos(2,3), T, C), C =[pos(0, 0), pos(0, 1), pos(0, 2), pos(0, 3), pos(0, 4), pos(1, 4), pos(1, 3), pos(2, 3)].
+test(10) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(0, 1), pos(1, 1)].
+test(11) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(1, 1)].
+test(12) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(1, 1)].
+test(13) :- tablero(ej5x5, T), camino(pos(0,0), pos(2,3), T, C), C =[pos(0, 0), pos(0, 1), pos(0, 2), pos(0, 3), pos(0, 4), pos(1, 4), pos(1, 3), pos(2, 3)].
 %cantidadDeCaminos
-test(10) :- tablero(ej5x5, T), cantidadDeCaminos(pos(0,0), pos(2,3), T, N), N = 287.
+test(14) :- tablero(ej5x5, T), cantidadDeCaminos(pos(0,0), pos(2,3), T, N), N = 287.
+test(15) :- tablero(ocupadasDelMedio, T), cantidadDeCaminos(pos(0,0),pos(1,0),T,N), N = 2.
 %camino2
-test(11) :- tablero(ej5x5, T), camino2(pos(0,0), pos(2,3), T, C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(2, 2), pos(2, 3)].
-test(12) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(0, 1), pos(1, 1)].
-test(13) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(1, 1)].
-test(14) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(1, 1)].
-test(15) :- tablero(ej5x5, T), cantidadDeCaminos2(pos(0,0), pos(2,3), T, N), N = 287.
+test(16) :- tablero(ej5x5, T), camino2(pos(0,0), pos(2,3), T, C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(2, 2), pos(2, 3)].
+test(17) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(0, 1), pos(1, 1)].
+test(18) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(1, 1)].
+test(19) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(1, 1)].
+test(20) :- tablero(ej5x5, T), cantidadDeCaminos2(pos(0,0), pos(2,3), T, N), N = 287.
 %camino3
-%tablero(ej5x5, T), camino3(pos(0,0), pos(2,3), T, C), C =[pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(2, 2), pos(2, 3)].
-tests :- forall(between(1, 15, N), test(N)). %IMPORTANTE: Actualizar la cantidad total 
-        %de tests para contemplar los que agreguen ustedes.
+test(21) :- tablero(ej5x5, T), camino3(pos(0,0), pos(2,3), T, C), C =[pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(2, 2), pos(2, 3)].
+test(22) :- tablero(ej5x5, T), cantidadDeCaminos3(pos(0,0), pos(2,3), T, N), N=2.
+%caminoDual
+test(23) :- tablero(ej5x5, T), caminoDual(pos(0,0),pos(2,3),T,T,C), C = [pos(0, 0), pos(0, 1), pos(0, 2), pos(0, 3), pos(0, 4), pos(1, 4), pos(1, 3), pos(2, 3)].
+tests :- forall(between(1, 22, N), test(N)).
