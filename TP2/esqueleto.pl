@@ -69,14 +69,28 @@ caminoConPosicionesVisitadas(I,F,T,H,[I|Cs]) :- vecinoLibre(I,T,V), not(member(V
 
 %% Ejercicio 6
 %% cantidadDeCaminos(+Inicio, +Fin, +Tablero, ?N) que indique la cantidad de caminos
-%% posibles sin ciclos entre Inicio y Fin.
+%% posibles sin ciclos entre Inicio y Fin. La idea basica es la misma que contar la cantidad de 
+%% hojas en un arbol binario. El caso base se encuentra cuando Inicio es igual a Fin, en donde N se 
+%% define en 1; y el caso recursivo es explorar cada uno de los vecinos del casillero actual, 
+%% definiendo a N como la suma de sus resultados.
 cantidadDeCaminos(I,I,_,1).
-cantidadDeCaminos(I,F,T,N) :- I = pos(X,Y), H = [I], R is Y+1, L is Y-1, D is X+1, U is X-1, cDC2(I,pos(X,R),F,T,N1,H), cDC2(I,pos(X,L),F,T,N2,H), cDC2(I,pos(U,Y),F,T,N3,H), cDC2(I,pos(D,Y),F,T,N4,H), N is N1 + N2 + N3 + N4.
+cantidadDeCaminos(I,F,T,N) :- expandir(I,F,T,[I],N).
 
-cDC2(_,I,I,_,1,_).
-cDC2(A,I,F,T,N,_) :- I\=F, not(vecinoLibre(A,T,I)), N=0.
-cDC2(_,I,F,_,N,H) :- I\=F, member(I,H), N=0.
-cDC2(A,pos(X,Y),F,T,N,H) :- I = pos(X,Y), I\=F, not(member(I,H)), vecinoLibre(A,T,I), R is Y+1, L is Y-1, D is X+1, U is X-1, cDC2(I,pos(X,R),F,T,N1,[I|H]), cDC2(I,pos(X,L),F,T,N2,[I|H]), cDC2(I,pos(U,Y),F,T,N3,[I|H]), cDC2(I,pos(D,Y),F,T,N4,[I|H]), N is N1 + N2 + N3 + N4.
+%% expandir(+Inicio, +Fin, +Tablero, +Historial, ?N) expande la exploracion de caminos a las
+%% cuatro posiciones aldañas posibles. Define a N como la suma de los resultados de la 
+%% exploracion de las mismas.
+expandir(pos(X,Y),F,T,H,N) :- I=pos(X,Y), R is Y+1, L is Y-1, D is X+1, U is X-1, explorar(I,pos(X,R),F,T,H,N1), explorar(I,pos(X,L),F,T,H,N2), explorar(I,pos(U,Y),F,T,H,N3), explorar(I,pos(D,Y),F,T,H,N4), N is N1 + N2 + N3 + N4.
+
+%% explorar(+Anterior, +Inicio, +Fin, +Tablero, +Historial, ?N) explora todos los caminos sin 
+%% ciclos entre Inicio y Fin fijando a N como la cantidad de caminos posibles, teniendo en cuenta que
+%% Anterior es el casillero desde el que se expande la exploracion. En el caso que el Inicio y el Fin 
+%% sean iguales la cantidad de caminos posibles es 1. En el caso de que el casillero Inicial ya haya sido 
+%% tocado (se encuentra en historial) o no sea un vecino valido del anterior, N se fija en 0.
+explorar(_,I,I,_,_,1).
+explorar(A,I,F,T,_,N) :- I\=F, not(vecinoLibre(A,T,I)), N=0.
+explorar(_,I,F,_,H,N) :- I\=F, member(I,H), N=0.
+explorar(A,I,F,T,H,N) :- I\=F, not(member(I,H)), vecinoLibre(A,T,I), NH=[I|H], expandir(I,F,T,NH,N).
+
 
 %% Ejercicio 7
 %% camino2(+Inicio, +Fin, +Tablero, -Camino) ídem camino/4 pero se espera una heurística
