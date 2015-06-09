@@ -1,13 +1,4 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
-%% Tableros ejemplo
-%%%%%%%%%%%%%%%%%%%%%%%%
-tablero(ej5x5, T) :- tablero(5, 5, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T).
-
-tablero(unaOcupada, T):- tablero(3, 2, T), ocupar(pos(1, 0), T).
-tablero(libre20, T) :- tablero(20, 20, T).
-tablero(libre3x2, T) :- tablero(3, 2, T).
-
-%%%%%%%%%%%%%%%%%%%%%%%%
 %% Tablero
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejercicio 1
@@ -209,7 +200,8 @@ cantidadDeCaminos2(Inicio,Fin,T,N):- aggregate_all(count, camino2(Inicio,Fin,T,_
 %% desde Inicio en más de 6 pasos.
 %% Notar que dos ejecuciones de camino3/4 con los mismos argumentos deben dar los mismos resultados.
 %% En este ejercicio se permiten el uso de predicados: dynamic/1, asserta/1, assertz/1 y retractall/1.
-camino3(_,_,_,_).
+:- dynamic camino3/4.
+camino3(I,F,T,C) :- assert(cantidadDeCaminos2(I,F,T,C)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Tableros simultáneos
@@ -221,3 +213,42 @@ camino3(_,_,_,_).
 %% sólo por celdas transitables de ambos tableros.
 %% Nota: Es posible una implementación que resuelva en forma inmediata casos en los que trivialmente no existe camino dual posible.
 caminoDual(I,F,T1,T2,C) :- camino(I,F,T1,C), camino(I,F,T2,C).
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+%% Tableros ejemplo
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+%aca se testea tablero y ocupar.
+tablero(ej5x5, T) :- tablero(5, 5, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T).
+tablero(ocupadasDelMedio, T) :- tablero(4, 4, T), ocupar(pos(1, 1), T), ocupar(pos(1, 2), T), ocupar(pos(2, 1), T), ocupar(pos(2, 2), T).
+tablero(unaOcupada, T):- tablero(3, 2, T), ocupar(pos(1, 0), T).
+tablero(libre20, T) :- tablero(20, 20, T).
+tablero(libre3x2, T) :- tablero(3, 2, T).
+
+%-----------------
+%----- Tests -----
+%-----------------
+%vecino
+test(1) :- tablero(unaOcupada, T), vecino(pos(0,0),T,pos(1,0)).
+test(2) :- tablero(unaOcupada, T), not(vecino(pos(0,0),T,pos(1,1))).
+test(3) :- tablero(unaOcupada, T), not(posicion(vecino(pos(1,0),T,pos(0,0)),T,ocupada)).
+%vecinoLibre
+test(4) :- tablero(ej5x5, T), vecinoLibre(pos(0,0), T, pos(0,1)).
+test(5) :- tablero(unaOcupada, T), not(vecinoLibre(pos(0,0), T, pos(1,0))).
+%camino
+test(6) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(0, 1), pos(1, 1)].
+test(7) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(1, 1)].
+test(8) :- tablero(libre3x2, T), camino(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(1, 1)].
+test(9) :- tablero(ej5x5, T), camino(pos(0,0), pos(2,3), T, C), C =[pos(0, 0), pos(0, 1), pos(0, 2), pos(0, 3), pos(0, 4), pos(1, 4), pos(1, 3), pos(2, 3)].
+%cantidadDeCaminos
+test(10) :- tablero(ej5x5, T), cantidadDeCaminos(pos(0,0), pos(2,3), T, N), N = 287.
+%camino2
+test(11) :- tablero(ej5x5, T), camino2(pos(0,0), pos(2,3), T, C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(2, 2), pos(2, 3)].
+test(12) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(0, 1), pos(1, 1)].
+test(13) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(1, 1)].
+test(14) :- tablero(libre3x2, T), camino2(pos(0,0), pos(1,1),T,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(1, 1)].
+test(15) :- tablero(ej5x5, T), cantidadDeCaminos2(pos(0,0), pos(2,3), T, N), N = 287.
+%camino3
+%tablero(ej5x5, T), camino3(pos(0,0), pos(2,3), T, C), C =[pos(0, 0), pos(1, 0), pos(2, 0), pos(2, 1), pos(2, 2), pos(2, 3)].
+tests :- forall(between(1, 15, N), test(N)). %IMPORTANTE: Actualizar la cantidad total 
+        %de tests para contemplar los que agreguen ustedes.
