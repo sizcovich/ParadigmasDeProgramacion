@@ -84,8 +84,8 @@ expandir(pos(X,Y),F,T,H,N) :- I=pos(X,Y), R is Y+1, L is Y-1, D is X+1, U is X-1
 %% explorar(+Anterior, +Inicio, +Fin, +Tablero, +Historial, ?N) explora todos los caminos sin 
 %% ciclos entre Inicio y Fin fijando a N como la cantidad de caminos posibles, teniendo en cuenta que
 %% Anterior es el casillero desde el que se expande la exploracion. En el caso que el Inicio y el Fin 
-%% sean iguales la cantidad de caminos posibles es 1. En el caso de que el casillero Inicial ya haya sido 
-%% tocado (se encuentra en historial) o no sea un vecino valido del anterior, N se fija en 0.
+%% sean iguales la cantidad de caminos posibles es 1. En el caso de que el casillero Inicial ya haya 
+%% sido tocado (se encuentra en historial) o no sea un vecino valido del anterior, N se fija en 0.
 explorar(_,I,I,_,_,1).
 explorar(A,I,F,T,_,N) :- I\=F, not(vecinoLibre(A,T,I)), N=0.
 explorar(_,I,F,_,H,N) :- I\=F, member(I,H), N=0.
