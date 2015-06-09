@@ -79,7 +79,8 @@ cantidadDeCaminos(I,F,T,N) :- expandir(I,F,T,[I],N).
 %% expandir(+Inicio, +Fin, +Tablero, +Historial, ?N) expande la exploracion de caminos a las
 %% cuatro posiciones aldañas posibles. Define a N como la suma de los resultados de la 
 %% exploracion de las mismas.
-expandir(pos(X,Y),F,T,H,N) :- I=pos(X,Y), R is Y+1, L is Y-1, D is X+1, U is X-1, explorar(I,pos(X,R),F,T,H,N1), explorar(I,pos(X,L),F,T,H,N2), explorar(I,pos(U,Y),F,T,H,N3), explorar(I,pos(D,Y),F,T,H,N4), N is N1 + N2 + N3 + N4.
+expandir(pos(X,Y),F,T,H,N) :- I=pos(X,Y), R is Y+1, L is Y-1, D is X+1, U is X-1, explorar(I,pos(X,R),F,T,H,N1), 
+	explorar(I,pos(X,L),F,T,H,N2), explorar(I,pos(U,Y),F,T,H,N3), explorar(I,pos(D,Y),F,T,H,N4), N is N1 + N2 + N3 + N4.
 
 %% explorar(+Anterior, +Inicio, +Fin, +Tablero, +Historial, ?N) explora todos los caminos sin 
 %% ciclos entre Inicio y Fin fijando a N como la cantidad de caminos posibles, teniendo en cuenta que
@@ -246,7 +247,7 @@ camino3(Inicio,Fin,T,C):-
 %        Inicio y Fin están en la misma fila.
 %        Inicio y Fin están en la misma columna.
 %        Ninguno de los anteriores.
-
+:- dynamic caminoLongitud/1.
 caminoDeLongitudMenorA(X):- caminoLongitud(L), L < X, !.  % el cut obliga a que Prolog mire sólo el primer camino (el más corto).
 noHayCaminoDeLongitudMenorA(X):- not(caminoDeLongitudMenorA(X)).
 
@@ -404,7 +405,7 @@ cantidadDeCaminos3(Inicio,Fin,T,N):- aggregate_all(count, camino3(Inicio,Fin,T,_
 %% sólo por celdas transitables de ambos tableros.
 %% Nota: Es posible una implementación que resuelva en forma inmediata casos en los que trivialmente no existe camino dual posible.
 caminoDual(I,F,T1,T2,C) :- camino(I,F,T1,C), camino(I,F,T2,C).
-%% La función evalúa que el camino C del tablero T1 coincida con alguna solución del tablero T2.
+%% La función evalúa que el camino C del tablero T1 coincida con las soluciones del tablero T2.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Tableros ejemplo
@@ -431,6 +432,8 @@ tablero(libre3x2, T) :- tablero(3, 2, T).
 %-----------------
 %----- Tests -----
 %-----------------
+%%%% Para correrlos: tests.
+
 %vecino
 test(1) :- tablero(unaOcupada, T), vecino(pos(0,0),T,pos(1,0)).
 test(2) :- tablero(unaOcupada, T), not(vecino(pos(0,0),T,pos(1,1))).
@@ -461,4 +464,7 @@ test(21) :- tablero(ej5x5, T), camino3(pos(0,0), pos(2,3), T, C), C =[pos(0, 0),
 test(22) :- tablero(ej5x5, T), cantidadDeCaminos3(pos(0,0), pos(2,3), T, N), N=2.
 %caminoDual
 test(23) :- tablero(ej5x5, T), caminoDual(pos(0,0),pos(2,3),T,T,C), C = [pos(0, 0), pos(0, 1), pos(0, 2), pos(0, 3), pos(0, 4), pos(1, 4), pos(1, 3), pos(2, 3)].
-tests :- forall(between(1, 22, N), test(N)).
+test(24) :- tablero(ej5x5, T1), tablero(ocupadasDelMedio, T2), caminoDual(pos(0,0),pos(3,3),T1,T2,C), C = [pos(0, 0), pos(0, 1), pos(0, 2), pos(0, 3), pos(1, 3), pos(2, 3), pos(3, 3)].
+test(25) :- tablero(ej5x5, T1), tablero(ocupadasDelMedio, T2), caminoDual(pos(0,0),pos(3,3),T1,T2,C), C = [pos(0, 0), pos(1, 0), pos(2, 0), pos(3, 0), pos(3, 1), pos(3, 2), pos(3, 3)].
+
+tests :- forall(between(1, 25, N), test(N)).
