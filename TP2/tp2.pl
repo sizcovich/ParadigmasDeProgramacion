@@ -5,9 +5,9 @@
 %% tablero(+Filas,+Columnas,-Tablero) instancia una estructura de tablero en blanco
 %% de Filas x Columnas, con todas las celdas libres.
 tablero(0,_,[]).
-tablero(F,C,[X|Xs]) :- length(X, C), Y is F-1, tablero(Y, C, Xs), !.
-%% Genera una lista de F listas (de longitud C). Utilizamos el cut para que devuelva la primer solución sin continuar
-%% la exploración dado que el tablero empieza sin instanciar.
+tablero(F,C,[X|Xs]) :- F > 0, length(X, C), Y is F-1, tablero(Y, C, Xs).
+%% Genera una lista de F listas (de longitud C). Verificamos que F>0 para que no se itere sobre valores negativos y
+%% asegurarnos de que termine pasando por la primer línea cuando F=0.
 
 %% Ejercicio 2
 %% ocupar(+Pos,?Tablero) será verdadero cuando la posición indicada esté ocupada.
