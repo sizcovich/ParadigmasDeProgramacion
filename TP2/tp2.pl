@@ -105,117 +105,40 @@ cantidadDeCaminos(I, F, T, N) :- aggregate_all(count, camino(I,F,T,_), N).
 %% Una solución es mejor mientras menos pasos se deba dar para llegar a
 %% destino (distancia Manhattan). Por lo tanto, el predicado deberá devolver de a uno,
 %% todos los caminos pero en orden creciente de longitud.
-camino2(Inicio,Fin,T,C):- camino2SinCiclos(Inicio,Fin,T,[],C).
+camino2(I,F,T,C) :- caminoConPosicionesVisitadas2(I,F,T,[],C).
 
-% camino2SinCiclos(+Inicio, +Fin, +Tablero, +Recorridos, -Camino)
-% Las reglas definen 1 paso. En cada caso priorizo avanzar hacia la celda Fin.
-% Los casos posibles son:
-%        Base: Ya llegué a destino.
-%        Inicio y Fin están en la misma fila.
-%        Inicio y Fin están en la misma columna.
-%        Ninguno de los anteriores.
+%% caminoConPosicionesVisitadas2(+Inicio, +Fin, +Tablero, +Lista, -Camino)
+%% Observar que la definición es idéntica a la de camino, pero los vecinos libres
+%% se recorren en orden desde el más cercano al destino hasta el más lejano.
+caminoConPosicionesVisitadas2(F,F,_,_,[F]). %% Llegamos a Inicial = Final.
+caminoConPosicionesVisitadas2(I,F,T,H,[I|Cs]) :-
+				vecinoLibreOrdenDistManhattan(I,F,T,V),
+				not(member(V,H)),
+				caminoConPosicionesVisitadas2(V,F,T,[I|H],Cs).
+				
+%% vecinoLibreOrdenDistManhattan(+Inicio,+Fin,+Tablero,-Vecino)
+%% La idea de este predicado es que el último parámetro vaya instanciado vecinos
+%% de "Inicio" en el orden desde el que está mas cerca hasta el que está mas lejos
+%% de Fin en distancia Manhattan.
+vecinoLibreOrdenDistManhattan(I,F,T,V):-
+				dimensiones(T,CantFilas,CantCols),
+				DistMax is CantFilas * CantCols,       %% Como máximo la distancia desde un vecino hasta el Fin es recorrer todo el tablero.
+				                                       %% (podría haber varias idas y vueltas según qué posiciones estén ocupadas)
+				between(0,DistMax,Dist),               %% Probamos todas las distancias posibles (desde cero porque V podría ser F)
+				vecinoLibre(I,T,V),                    %% Por cada vecino libre de I
+				distManhattan(V,F,Dist).               %% que esté a distancia Dist
+%% Los vecinos se recorren en orden desde menor distancia a F.
+%% No genera repetidos porque cada vecino está a una única distancia de F
+%% y las distancias Dist no se repiten.
 
-% Base (llegué a destino):
-camino2SinCiclos(Fin, Fin, _, _, [Fin]).
 
-%% Si Inicio y Fin están en la misma columna, avanzar verticalmente si es posible y si no moverse horizontalmente
-%% hacia cualquier costado (porque se alejaría y da lo mismo cualquier costado). Y si no puede tampoco, entonces retroceder
-%% verticalmente (y se agotaron las opciones).
-camino2SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
-		I1 =\= I2,
-		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J)),        % solo vecinos de la misma columna (avance vertical)
-		Iv =:= I1+sign(I2-I1),                  % Dar un paso vertical avanzando hacia Fin.
-		V = pos(Iv,J),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+%% distManhattan(+Inicio,+Fin,?Distancia)
+%% Observar que como las posiciones del tablero son enteros, entonces la distancia siempre es entera.
+distManhattan(pos(X1,Y1),pos(X2,Y2),D):- D is abs(X1-X2)+abs(Y1-Y2).
 
-camino2SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
-		I1 =\= I2,
-		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
-		vecinoLibre(Inicio,T,pos(I1,Jv)),       % solo vecinos de la misma fila que Inicio (avance horizontal)
-		V = pos(I1,Jv),                         % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino2SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
-		I1 =\= I2,
-		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J)),        % solo vecinos de la misma columna (retroceso vertical)
-		Iv =:= I1-sign(I2-I1),                  % Dar un paso vertical avanzando hacia el otro lado.
-		V = pos(Iv,J),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-%% Si Inicio y Fin están en la misma fila, avanzar horizontalmente si es posible y si no moverse verticalmente
-%% hacia cualquier lado (porque se alejaría y da lo mismo cualquier lado). Y si no puede tampoco, entonces retroceder
-%% horizontalmente (y se agotaron las opciones).
-camino2SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
-		J1 =\= J2,
-		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I,Jv)),        % solo vecinos de la misma fila (avance horizontal)
-		Jv =:= J1+sign(J2-J1),                  % Dar un paso horizontal avanzando hacia Fin.
-		V = pos(I,Jv),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-
-camino2SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
-		J1 =\= J2,
-		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J1)),       % solo vecinos de la misma columna que Inicio (avance vertical)
-		V = pos(Iv,J1),                         % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino2SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
-		J1 =\= J2,
-		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I,Jv)),        % solo vecinos de la misma fila (retroceso horizontal)
-		Jv =:= J1-sign(J2-J1),                  % Dar un paso horizontal avanzando hacia el otro lado.
-		V = pos(I,Jv),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-%% Si Inicio y Fin NO están ni en la misma fila ni en la misma columna, entonces
-%% intento avanzar primero verticalmente hacia Fin. Si no puedo, intento avanzar
-%% horizontalmente hacia Fin. Si no puedo, retrocedo verticalmente. Y si no puedo, 
-%% retrocedo horizontalmente. 
-camino2SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J1)),         % solo vecinos de la misma columna (avance vertical)
-		Iv =:= I1+sign(I2-I1),                    % Dar un paso vertical avanzando hacia Fin.
-		V = pos(Iv,J1),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino2SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):-
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I1,Jv)),         % solo vecinos de la misma fila (avance horizontal)
-		Jv =:= J1+sign(J2-J1),                    % Dar un paso horizontal avanzando hacia Fin.
-		V = pos(I1,Jv),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino2SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J1)),         % solo vecinos de la misma columna (retroceso vertical)
-		Iv =:= I1-sign(I2-I1),                    % Dar un paso vertical retrocediendo.
-		V = pos(Iv,J1),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino2SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I1,Jv)),         % solo vecinos de la misma fila (retroceso horizontal)
-		Jv =:= J1-sign(J2-J1),                    % Dar un paso horizontal retrocediendo.
-		V = pos(I1,Jv),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino2SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
+%% dimensiones(+Tablero, -CantidadFilas, -CantidadColumnas)
+%% Tiene como precondición que el tablero esté bien formado (al menos 1 fila y 1 columna)
+dimensiones([Fila1|T],F,C):- length([Fila1|T],F), length(Fila1,C).
 		
 % cantidadDeCaminos2(+Inicio, +Fin, +Tablero, -N)  (solo para corroborar el ejemplo del enunciado)
 cantidadDeCaminos2(Inicio,Fin,T,N):- aggregate_all(count, camino2(Inicio,Fin,T,_), N).
@@ -233,164 +156,41 @@ cantidadDeCaminos2(Inicio,Fin,T,N):- aggregate_all(count, camino2(Inicio,Fin,T,_
 %% Notar que dos ejecuciones de camino3/4 con los mismos argumentos deben dar los mismos resultados.
 %% En este ejercicio se permiten el uso de predicados: dynamic/1, asserta/1, assertz/1 y retractall/1.
 
-% El algoritmo es goloso como en camino2, pero vamos guardando en la base
-% de conocimiento las longitudes de los caminos que vamos obteniendo.
-% De esta manera, luego de haber encontrado un primer camino (que por el
-% algoritmo goloso se espera que sea más o menos bueno), se procede a recorrer 
-% el espacio de búsqueda pero deteniendo la búsqueda cuando el camino ya resulta
-% más largo que cualquiera de los caminos hallados.
-% Cada camino nuevo tiene una longitud menor o igual al anterior, entonces
-% la regla se agrega siempre arriba (para que Prolog mire sólo el primer caminoLongitud(X)
-% y como es el más chico no necesita mirar otros).
-camino3(Inicio,Fin,T,C):- 
-		retractall(caminoLongitud(_)), camino3SinCiclos(Inicio,Fin,T,[],C).
-
-% camino3SinCiclos(+Inicio, +Fin, +Tablero, +Recorridos, -Camino)
-% Las reglas definen 1 paso. En cada caso priorizo avanzar hacia la celda Fin.
-% Los casos posibles son:
-%        Base: Ya llegué a destino.
-%        Inicio y Fin están en la misma fila.
-%        Inicio y Fin están en la misma columna.
-%        Ninguno de los anteriores.
+%% Declaración del predicado dinámico (para poder agregar y sacar reglas)
 :- dynamic caminoLongitud/1.
+
+%% caminoDeLongitudMenorA(+Longitud)
+%% Devuelve true cuando existe algún camino de longitud menor a Longitud entre los
+%% encontrados hasta el momento. Dado que los caminos encontrados
+%% se van poniendo arriba en la lista de reglas del predicado caminoLongitud/1,
+%% y además siempre se encuentran caminos de longitud igual o más chica, entonces
+%% la primer instanciación de caminoLongitud(L) es tal que L es la longitud mínima.
 caminoDeLongitudMenorA(X):- caminoLongitud(L), L < X, !.  % el cut obliga a que Prolog mire sólo el primer camino (el más corto).
+
+%% noHayCaminoDeLongitudMenorA(+Longitud)
+%% Da true si no existe ningún camino de longitud menor a Longitud encontrado
+%% hasta el momento
 noHayCaminoDeLongitudMenorA(X):- not(caminoDeLongitudMenorA(X)).
 
-% Base (llegué a destino) (si entra en esta regla, es porque no hay un camino de longitud menor
-% (lo checkea en la regla anterior, usando el +2)
-camino3SinCiclos(Fin, Fin, _, Recorridos, [Fin]):-
-		length(Recorridos, Longit),
-		L is Longit+1,
-		asserta(caminoLongitud(L)).
+%% retractall borra todas las reglas del predicado pasado por parámetro y lo inicializa.
+camino3(I,F,T,C) :- retractall(caminoLongitud(_)), caminoConPosicionesVisitadas3(I,F,T,[],C).
 
-%% Si Inicio y Fin están en la misma columna, avanzar verticalmente si es posible y si no moverse horizontalmente
-%% hacia cualquier costado (porque se alejaría y da lo mismo cualquier costado). Y si no puede tampoco, entonces retroceder
-%% verticalmente (y se agotaron las opciones).
-camino3SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):-
-		length(Recorridos, Longit),             % Los que recorrí antes del Inicio actual
-		L is Longit + 2,                        % El camino que estoy armando tiene longitud Longit + 1 
-		                                        % (Inicio y V seguro van a formar parte del camino resultante, ya que Inicio!=Fin)
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2,
-		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J)),        % solo vecinos de la misma columna (avance vertical)
-		Iv =:= I1+sign(I2-I1),                  % Dar un paso vertical avanzando hacia Fin.
-		V = pos(Iv,J),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+%% caminoConPosicionesVisitadas3(+Inicio, +Fin, +Tablero, +Lista, -Camino)
+%% Observar que la definición es idéntica a la de camino2
+caminoConPosicionesVisitadas3(F,F,_,Recorridos,[F]):-
+			length(Recorridos, Longit),
+			L is Longit+1,                %% (Los recorridos hasta el predicado que me llama a mí) + F (la última celda).
+			asserta(caminoLongitud(L)).   %% Se agrega esta como LA PRIMER REGLA. Entonces caminoLongitud(X) siempre devuelve el camino
+			                              %% de longitud menor hasta ahora encontrado (si se llega al caso base siempre es por un camino
+										  %% de longitud igual o menor al encontrado hasta el momento)
 
-camino3SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2,
-		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
-		vecinoLibre(Inicio,T,pos(I1,Jv)),       % solo vecinos de la misma fila que Inicio (avance horizontal)
-		V = pos(I1,Jv),                         % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino3SinCiclos(pos(I1,J), pos(I2,J), T, Recorridos, [pos(I1,J)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2,
-		Inicio = pos(I1,J), Fin = pos(I2,J),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J)),        % solo vecinos de la misma columna (retroceso vertical)
-		Iv =:= I1-sign(I2-I1),                  % Dar un paso vertical avanzando hacia el otro lado.
-		V = pos(Iv,J),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-%% Si Inicio y Fin están en la misma fila, avanzar horizontalmente si es posible y si no moverse verticalmente
-%% hacia cualquier lado (porque se alejaría y da lo mismo cualquier lado). Y si no puede tampoco, entonces retroceder
-%% horizontalmente (y se agotaron las opciones).
-camino3SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		J1 =\= J2,
-		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I,Jv)),        % solo vecinos de la misma fila (avance horizontal)
-		Jv =:= J1+sign(J2-J1),                  % Dar un paso horizontal avanzando hacia Fin.
-		V = pos(I,Jv),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-
-camino3SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		J1 =\= J2,
-		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J1)),       % solo vecinos de la misma columna que Inicio (avance vertical)
-		V = pos(Iv,J1),                         % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino3SinCiclos(pos(I,J1), pos(I,J2), T, Recorridos, [pos(I,J1)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		J1 =\= J2,
-		Inicio = pos(I,J1), Fin = pos(I,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I,Jv)),        % solo vecinos de la misma fila (retroceso horizontal)
-		Jv =:= J1-sign(J2-J1),                  % Dar un paso horizontal avanzando hacia el otro lado.
-		V = pos(I,Jv),                          % Renombres
-		not(member(V,Recorridos)),              % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-%% Si Inicio y Fin NO están ni en la misma fila ni en la misma columna, entonces
-%% intento avanzar primero verticalmente hacia Fin. Si no puedo, intento avanzar
-%% horizontalmente hacia Fin. Si no puedo, retrocedo verticalmente. Y si no puedo, 
-%% retrocedo horizontalmente. 
-camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J1)),         % solo vecinos de la misma columna (avance vertical)
-		Iv =:= I1+sign(I2-I1),                    % Dar un paso vertical avanzando hacia Fin.
-		V = pos(Iv,J1),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):-
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I1,Jv)),         % solo vecinos de la misma fila (avance horizontal)
-		Jv =:= J1+sign(J2-J1),                    % Dar un paso horizontal avanzando hacia Fin.
-		V = pos(I1,Jv),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(Iv,J1)),         % solo vecinos de la misma columna (retroceso vertical)
-		Iv =:= I1-sign(I2-I1),                    % Dar un paso vertical retrocediendo.
-		V = pos(Iv,J1),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
-		
-camino3SinCiclos(pos(I1,J1), pos(I2,J2), T, Recorridos, [pos(I1,J1)|[V|Demas]]):- 
-		length(Recorridos, Longit),
-		L is Longit + 2,
-		noHayCaminoDeLongitudMenorA(L),
-		I1 =\= I2, J1 =\= J2,
-		Inicio = pos(I1,J1), Fin = pos(I2,J2),    % Renombres
-		vecinoLibre(Inicio,T,pos(I1,Jv)),         % solo vecinos de la misma fila (retroceso horizontal)
-		Jv =:= J1-sign(J2-J1),                    % Dar un paso horizontal retrocediendo.
-		V = pos(I1,Jv),                           % Renombres
-		not(member(V,Recorridos)),                % Sin ciclos
-		camino3SinCiclos(V,Fin,T,[Inicio|Recorridos],[V|Demas]).
+caminoConPosicionesVisitadas3(I,F,T,Recorridos,[I|Cs]) :-
+			length(Recorridos, Longit),             % Los recorridos hasta ahora
+			L is Longit + 2,                        % Inicio y V seguro van a formar parte del camino resultante, ya que Inicio!=Fin
+			noHayCaminoDeLongitudMenorA(L),
+			vecinoLibreOrdenDistManhattan(I,F,T,V),
+			not(member(V,Recorridos)),
+			caminoConPosicionesVisitadas3(V,F,T,[I|Recorridos],Cs).
 
 
 % cantidadDeCaminos3(+Inicio, +Fin, +Tablero, -N)  (solo para corroborar el ejemplo del enunciado)
