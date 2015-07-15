@@ -74,6 +74,8 @@ caminoConPosicionesVisitadas(I,F,T,H,[I|Cs]) :- vecinoLibre(I,T,V), not(member(V
 cantidadDeCaminos(I,I,_,1).
 cantidadDeCaminos(I, F, T, N) :- aggregate_all(count, camino(I,F,T,_), N).
 
+%% El predicado anterior se encarga de contar paulatinamente la cantidad de caminos posibles que devuelve la función camino.
+
 %% Ejercicio 7
 %% camino2(+Inicio, +Fin, +Tablero, -Camino) ídem camino/4 pero se espera una heurística
 %% que mejore las soluciones iniciales.
@@ -93,12 +95,12 @@ caminoConPosicionesVisitadas2(I,F,T,H,[I|Cs]) :-
 				caminoConPosicionesVisitadas2(V,F,T,[I|H],Cs).
 				
 %% vecinoLibreOrdenDistManhattan(+Inicio,+Fin,+Tablero,-Vecino)
-%% La idea de este predicado es que el último parámetro vaya instanciado vecinos
-%% de "Inicio" en el orden desde el que está mas cerca hasta el que está mas lejos
+%% La idea de este predicado es que el último parámetro vaya instanciando vecinos
+%% de "Inicio" en el orden desde el mas cerca hasta el mas lejos
 %% de Fin en distancia Manhattan.
 vecinoLibreOrdenDistManhattan(I,F,T,V):-
 				dimensiones(T,CantFilas,CantCols),
-				DistMax is CantFilas * CantCols,       %% Como máximo la distancia desde un vecino hasta el Fin es recorrer todo el tablero.
+				DistMax is CantFilas * CantCols,       %% La distancia máxima desde un vecino hasta el Fin es todo el tablero.
 				                                       %% (podría haber varias idas y vueltas según qué posiciones estén ocupadas)
 				between(0,DistMax,Dist),               %% Probamos todas las distancias posibles (desde cero porque V podría ser F)
 				vecinoLibre(I,T,V),                    %% Por cada vecino libre de I
@@ -122,12 +124,6 @@ cantidadDeCaminos2(Inicio,Fin,T,N):- aggregate_all(count, camino2(Inicio,Fin,T,_
 %% Ejercicio 8
 %% camino3(+Inicio, +Fin, +Tablero, -Camino) ídem camino2/4 pero se espera que
 %% se reduzca drásticamente el espacio de búsqueda.
-%% En el proceso de generar los potenciales caminos, se pueden ir sacando algunas conclusiones.
-%% Por ejemplo, si se está en la celda (3,4) y se dieron ya 6 pasos desde el Inicio,
-%% entonces no tiene sentido seguir evaluando cualquier camino que implique llegar a la celda (3,4)
-%% desde Inicio en más de 6 pasos.
-%% Notar que dos ejecuciones de camino3/4 con los mismos argumentos deben dar los mismos resultados.
-%% En este ejercicio se permiten el uso de predicados: dynamic/1, asserta/1, assertz/1 y retractall/1.
 
 %% Declaración del predicado dinámico (para poder agregar y sacar reglas)
 :- dynamic caminoLongitud/1.
@@ -152,7 +148,7 @@ camino3(I,F,T,C) :- retractall(caminoLongitud(_)), caminoConPosicionesVisitadas3
 %% Observar que la definición es idéntica a la de camino2
 caminoConPosicionesVisitadas3(F,F,_,Recorridos,[F]):-
 			length(Recorridos, Longit),
-			L is Longit+1,                %% (Los recorridos hasta el predicado que me llama a mí) + F (la última celda).
+			L is Longit+1,                %% (Los recorridos hasta el predicado que llama a la función) + F (la última celda).
 			asserta(caminoLongitud(L)).   %% Se agrega esta como LA PRIMER REGLA. Entonces caminoLongitud(X) siempre devuelve el camino
 			                              %% de longitud menor hasta ahora encontrado (si se llega al caso base siempre es por un camino
 										  %% de longitud igual o menor al encontrado hasta el momento)
@@ -164,7 +160,6 @@ caminoConPosicionesVisitadas3(I,F,T,Recorridos,[I|Cs]) :-
 			vecinoLibreOrdenDistManhattan(I,F,T,V),
 			not(member(V,Recorridos)),
 			caminoConPosicionesVisitadas3(V,F,T,[I|Recorridos],Cs).
-
 
 % cantidadDeCaminos3(+Inicio, +Fin, +Tablero, -N)  (solo para corroborar el ejemplo del enunciado)
 cantidadDeCaminos3(Inicio,Fin,T,N):- aggregate_all(count, camino3(Inicio,Fin,T,_), N).
